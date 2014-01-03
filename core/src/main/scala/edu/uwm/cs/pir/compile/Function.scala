@@ -8,6 +8,12 @@ import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
 
 object Function {
 
+  def f_colorLayout() = new GenericColorLayout()
+  
+  def f_edgeHistogram() = new GenericEdgeHistogram()
+  
+  def f_gabor() = new GenericGabor()
+  
   def f_cedd() = new GenericCEDD()
 
   def f_fcth() = new GenericFCTH()

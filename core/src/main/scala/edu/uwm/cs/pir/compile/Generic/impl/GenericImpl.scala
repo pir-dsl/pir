@@ -5,7 +5,6 @@ import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.spark.SparkObject._
 import edu.uwm.cs.pir.aws.AWSS3API._
-
 import edu.uwm.cs.mir.prototypes.feature.lire._
 import edu.uwm.cs.mir.prototypes.feature.lucene._
 import edu.uwm.cs.mir.prototypes.composer._
@@ -18,7 +17,6 @@ import edu.uwm.cs.mir.prototypes.proj.lucene._
 import edu.uwm.cs.mir.prototypes.feature.wikipedia._
 import edu.uwm.cs.mir.prototypes.feature.FilenameFeature._
 import edu.uwm.cs.mir.prototypes.feature.AWSS3Source
-
 import edu.uwm.cs.pir.misc.Constants._
 import org.apache.commons.io.FileUtils
 
@@ -126,6 +124,42 @@ object GenericImpl {
       val list = in.map(innerList => innerList.asJava)
       composer.apply(list.asJava).asInstanceOf[Compose]
     }
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
+    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
+    override def apply(in: Image): LireFeatureAdaptor = {
+      log("Apply ColorLayout to " + in.getId())("INFO")
+      colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+    }
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericEdgeHistogram(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
+    val edgeHistogram = new EdgeHistogram(scaleWidth, scaleHeight)
+    override def apply(in: Image): LireFeatureAdaptor = {
+      log("Apply EdgeHistogram to " + in.getId())("INFO")
+      edgeHistogram.apply(in).asInstanceOf[LireFeatureAdaptor]
+    }
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericGabor(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
+    val gabor = new Gabor(scaleWidth, scaleHeight)
+    override def apply(in: Image): LireFeatureAdaptor = {
+      log("Apply Gabor to " + in.getId())("INFO")
+      gabor.apply(in).asInstanceOf[LireFeatureAdaptor]
+    }
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
   }
 
   @SerialVersionUID(1L)
