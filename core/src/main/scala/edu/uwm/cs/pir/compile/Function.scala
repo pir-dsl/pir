@@ -5,9 +5,12 @@ import edu.uwm.cs.mir.prototypes.proj.lucene._
 import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.pir.misc.Constants._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
+import net.semanticmetadata.lire.imageanalysis.LireFeature
 
 object Function {
 
+  def f_FeatureDistance(queryLireFeature : LireFeature) = new GenericFeatureDistance(queryLireFeature)
+  
   def f_colorLayout() = new GenericColorLayout()
   
   def f_edgeHistogram() = new GenericEdgeHistogram()
