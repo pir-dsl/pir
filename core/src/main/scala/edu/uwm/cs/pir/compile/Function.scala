@@ -4,12 +4,14 @@ import edu.uwm.cs.mir.prototypes.feature._
 import edu.uwm.cs.mir.prototypes.proj.lucene._
 import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.pir.misc.Constants._
+import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
+import edu.uwm.cs.mir.prototypes.feature.lire._
 import net.semanticmetadata.lire.imageanalysis.LireFeature
 
 object Function {
 
-  def f_FeatureDistance(queryLireFeature : LireFeature) = new GenericFeatureDistance(queryLireFeature)
+  def f_FeatureDistance(queryImagePath : String, proj : GenericProj[Image, LireFeatureAdaptor]) = new GenericFeatureDistance(queryImagePath, proj)
   
   def f_colorLayout() = new GenericColorLayout()
   

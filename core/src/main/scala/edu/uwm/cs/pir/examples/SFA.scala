@@ -54,7 +54,6 @@ object SFA {
   def usage: Unit = {
     println("USAGE: SFA \"se/p/sp 1/2 env.conf\"");
     println("where se to run program sequentially, " + "p parallely, and sp in Spark; ");
-    println("if in Spark execution, 1 to run program against sample, 2 against WikiPedia dataset)")
     println("env.conf is a customized configuration file to replace the default one")
     println("see sample-application.conf for details")
   }
@@ -76,22 +75,14 @@ object SFA {
 
   def getQ(s : RunStrategy) = {
     val img = load[Image]("iaprtc12/images/", InputType.IMAGE)
-    val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/1000.jpg", InputType.IMAGE)
 
     val colorLayout = img.connect(f_colorLayout)
     val edgeHistogram = img.connect(f_edgeHistogram)
     val gabor = img.connect(f_gabor)
     
-    val queryColorLayout = qImg.connect(f_colorLayout)
-    val queryEdgeHistogram = qImg.connect(f_edgeHistogram)
-    val queryGabor = qImg.connect(f_gabor)
-    
-    queryColorLayout.accept(s)
-    queryColorLayout.cache
-    
-    colorLayout.connect(f_FeatureDistance(null)).accept(s)
-    edgeHistogram.connect(f_FeatureDistance(null)).accept(s)
-    gabor.connect(f_FeatureDistance(null)).accept(s)
+    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
+    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
+    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
   }
 
 }

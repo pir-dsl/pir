@@ -5,6 +5,7 @@ import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.spark.SparkObject._
 import edu.uwm.cs.pir.aws.AWSS3API._
+import edu.uwm.cs.pir.compile.Function._
 import edu.uwm.cs.mir.prototypes.feature.lire._
 import edu.uwm.cs.mir.prototypes.feature.lucene._
 import edu.uwm.cs.mir.prototypes.composer._
@@ -128,16 +129,18 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericFeatureDistance(queryFeature: LireFeature) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
+  case class GenericFeatureDistance(queryImagePath: String, proj : GenericProj[Image, LireFeatureAdaptor]) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
+    val cachedQueryFeature: LireFeatureAdaptor = proj.apply(new Image(queryImagePath))
+    
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
-      new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(queryFeature))
+      new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(cachedQueryFeature.getLireFeature()))
     }
 
     override def setIndex(index: IIndex): Unit = {}
     override def setModel(model: IModel): Unit = {}
   }
-  
+
   @SerialVersionUID(1L)
   case class GenericColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
     val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
