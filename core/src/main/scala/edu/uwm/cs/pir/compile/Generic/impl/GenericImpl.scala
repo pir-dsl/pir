@@ -134,6 +134,9 @@ object GenericImpl {
     
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
+      log("Source LireFeature is " + in.getLireFeature())("INFO")
+      log("Target LireFeature is " + cachedQueryFeature.getLireFeature())("INFO")
+      
       new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(cachedQueryFeature.getLireFeature()))
     }
 
