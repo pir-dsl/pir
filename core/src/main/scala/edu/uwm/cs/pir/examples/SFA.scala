@@ -87,8 +87,7 @@ object SFA {
     val img = load[Image](SAMPLE_IMAGES_ROOT + "training", InputType.IMAGE)
     
     val colorLayout = img.connect(f_colorLayout)
-    //colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
-    colorLayout.accept(s)
+    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
     
     //val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
 
