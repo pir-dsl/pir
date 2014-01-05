@@ -271,12 +271,12 @@ object Strategy {
       case Some(d) => d
       case None => null
     }
-    //log ("pipe.left.cache = " + pipe.left.cache)
+    log ("pipe.left.cache = " + pipe.left.cache)
     pipe.right.accept(strategy)
-    //log("pipe.right.cache = " + pipe.right);
+    log("pipe.right.cache = " + pipe.right);
 
     val result = getResultList[In, Out](left, pipe.right)
-    //log("result = " + result.collect)
+    log("result = " + result.collect)
     pipe.cache = Some(result)
   }
 
