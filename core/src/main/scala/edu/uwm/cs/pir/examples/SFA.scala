@@ -84,7 +84,7 @@ object SFA {
 //    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
 //    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
     
-    val img = load[Image]("images/", InputType.IMAGE)
+    val img = load[Image](WIKIPEDIA_IMAGES_ROOT + "training", InputType.IMAGE)
     
     val colorLayout = img.connect(f_colorLayout)
     val edgeHistogram = img.connect(f_edgeHistogram)
