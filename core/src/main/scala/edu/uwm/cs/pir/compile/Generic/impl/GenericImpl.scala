@@ -129,15 +129,14 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericFeatureDistance(queryImagePath: String, proj : GenericProj[Image, LireFeatureAdaptor]) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
-    val cachedQueryFeature: LireFeatureAdaptor = proj.apply(new Image(queryImagePath))
-    
+  case class GenericFeatureDistance(val queryFeature: LireFeatureAdaptor) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
+     
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
       log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
       //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
       
-      new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(cachedQueryFeature.getLireFeature()))
+      new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(queryFeature.getLireFeature()))
     }
 
     override def setIndex(index: IIndex): Unit = {}

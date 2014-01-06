@@ -11,7 +11,7 @@ import net.semanticmetadata.lire.imageanalysis.LireFeature
 
 object Function {
 
-  def f_FeatureDistance(queryImagePath : String, proj : GenericProj[Image, LireFeatureAdaptor]) = new GenericFeatureDistance(queryImagePath, proj)
+  def f_FeatureDistance(queryImagePath : String, proj : GenericProj[Image, LireFeatureAdaptor]) = new GenericFeatureDistance(proj.apply(new Image(queryImagePath)))
   
   def f_colorLayout() = new GenericColorLayout()
   

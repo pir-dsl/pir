@@ -86,9 +86,11 @@ object SFA {
     
     val img = load[Image](SAMPLE_IMAGES_ROOT + "training", InputType.IMAGE)
     
-    //val colorLayout = img.connect(f_edgeHistogram)
+    val colorLayout = img.connect(f_colorLayout)
     val edgeHistogram = img.connect(f_edgeHistogram)
     val gabor = img.connect(f_gabor)
+    
+    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
     edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
     gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
     
