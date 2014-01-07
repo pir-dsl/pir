@@ -25,6 +25,8 @@ object SFA {
     } else {
       
       sparkContext = initSparkConf
+      awsS3Config = initAWSS3Config
+      
       val env = args(0)
       
       if ("se" == env) {
