@@ -133,9 +133,8 @@ object GenericImpl {
      
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
-      log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+      //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
       //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-      
       new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(in.getLireFeature()))
     }
 
@@ -148,6 +147,7 @@ object GenericImpl {
     val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply ColorLayout to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
       colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
@@ -160,6 +160,7 @@ object GenericImpl {
     val edgeHistogram = new EdgeHistogram(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply EdgeHistogram to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) edgeHistogram.setAWSS3Config(awsS3Config)
       edgeHistogram.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
@@ -172,6 +173,7 @@ object GenericImpl {
     val gabor = new Gabor(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply Gabor to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) gabor.setAWSS3Config(awsS3Config)
       gabor.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
@@ -184,6 +186,7 @@ object GenericImpl {
     val cedd = new CEDD(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply CEDD to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
       cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
@@ -196,6 +199,7 @@ object GenericImpl {
     val fcth = new FCTH(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply FCTH to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) fcth.setAWSS3Config(awsS3Config)
       fcth.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
