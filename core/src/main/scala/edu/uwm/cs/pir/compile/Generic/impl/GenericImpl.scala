@@ -82,7 +82,7 @@ object GenericImpl {
       } else {
         val image = new Image(url).asInstanceOf[Out]
         if (awsS3Config.isIs_s3_storage()) {
-          //log("load image from AWS")
+          log("load image from AWS bucket name = " + awsS3Config.getBucket_name())("INFO")
           image.setAWSS3Config(awsS3Config)
         }
         log("load image : " + url)("INFO")
