@@ -25,6 +25,8 @@ object ImageQuery {
     } else {
       
       sparkContext = initSparkConf
+      awsS3Config = initAWSS3Config
+      
       val env = args(0)
       val dataset = args(1)
       
