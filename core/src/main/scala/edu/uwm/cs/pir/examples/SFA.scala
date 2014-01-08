@@ -90,10 +90,12 @@ object SFA {
     
     val colorLayout = img.connect(f_colorLayout)
     val edgeHistogram = img.connect(f_edgeHistogram)
+    val cedd = img.connect(f_cedd)
     val gabor = img.connect(f_gabor)
     
     colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
-    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
+    //edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
+    cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).accept(s)
     gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
     
     //val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
