@@ -18,7 +18,7 @@ object SparkObject {
 
   var sparkContext: SparkContext = null
   
-  var awsS3Config: AWSS3Config = null
+  var awsS3Config: AWSS3Config = initAWSS3Config
   
   val isS3Storage = conf.getString("aws_env.is_s3_storage")	
   
