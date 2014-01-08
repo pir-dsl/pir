@@ -130,18 +130,22 @@ object GenericImpl {
 
   @SerialVersionUID(1L)
   case class GenericFeatureDistance(val queryFeature: LireFeatureAdaptor) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
-     
+
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
-      //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-      //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-      val distance : Float = try {
-        in.getLireFeature().getDistance(queryFeature.getLireFeature())
-      } catch {
-        case npe : NullPointerException => -1F
-        case e : Exception => throw new RuntimeException(e)
+      if (in == null) {
+        new LireDistanceFeatureAdaptor("nullId", -1F)
+      } else {
+        //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+        //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+        val distance: Float = try {
+          in.getLireFeature().getDistance(queryFeature.getLireFeature())
+        } catch {
+          case npe: NullPointerException => -1F
+          case e: Exception => throw new RuntimeException(e)
+        }
+        new LireDistanceFeatureAdaptor(in.getId(), distance)
       }
-      new LireDistanceFeatureAdaptor(in.getId(), distance)
     }
 
     override def setIndex(index: IIndex): Unit = {}
