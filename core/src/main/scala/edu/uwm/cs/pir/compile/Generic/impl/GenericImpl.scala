@@ -136,7 +136,7 @@ object GenericImpl {
       //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
       //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
       val distance : Float = try {
-        in.getLireFeature().getDistance(queryFeature.getFeature())
+        in.getLireFeature().getDistance(queryFeature.getLireFeature())
       } catch {
         case npe : NullPointerException => -1F
         case e : Exception => throw new RuntimeException(e)
