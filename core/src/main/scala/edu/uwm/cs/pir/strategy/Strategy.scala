@@ -277,7 +277,7 @@ object Strategy {
 
     val result = getResultList[In, Out](left, pipe.right)
     //if we use result.collect, we will have stack overflow issue for large dataset
-    log("result = " + result.first)
+    log("result = " + result.foreach(elem => println("*")))
     pipe.cache = Some(result)
   }
 
