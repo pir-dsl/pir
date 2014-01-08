@@ -135,8 +135,13 @@ object GenericImpl {
       log("Apply FeatureDistance to " + in.getId())("INFO")
       //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
       //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-      if (in == null) new LireDistanceFeatureAdaptor("nullid", -1F)
-      else new LireDistanceFeatureAdaptor(in.getId(), in.getLireFeature().getDistance(in.getLireFeature()))
+      val distance : Float = try {
+        in.getLireFeature().getDistance(queryFeature.getFeature())
+      } catch {
+        case npe : NullPointerException => -1F
+        case e : Exception => throw new RuntimeException(e)
+      }
+      new LireDistanceFeatureAdaptor(in.getId(), distance)
     }
 
     override def setIndex(index: IIndex): Unit = {}
