@@ -276,7 +276,8 @@ object Strategy {
     //log("pipe.right.cache = " + pipe.right);
 
     val result = getResultList[In, Out](left, pipe.right)
-    log("result = " + result.collect)
+    //if we use result.collect, we will have stack overflow issue for large dataset
+    log("result = " + result.count)
     pipe.cache = Some(result)
   }
 
