@@ -23,12 +23,12 @@ object SFA {
     if (args.length != 1) {
       usage
     } else {
-      
+
       sparkContext = initSparkConf
       awsS3Config = initAWSS3Config
-      
+
       val env = args(0)
-      
+
       if ("se" == env) {
         time(sequentialSFA()) {
           "sequentialSFA"
@@ -75,27 +75,32 @@ object SFA {
     val q = getQ(s)
   }
 
-  def getQ(s : RunStrategy) = {
-//    val img = load[Image]("iaprtc12/images/", InputType.IMAGE)
-//
-//    val colorLayout = img.connect(f_colorLayout)
-//    val edgeHistogram = img.connect(f_edgeHistogram)
-//    val gabor = img.connect(f_gabor)
-//    
-//    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
-//    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
-//    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
-    
+  def getQ(s: RunStrategy) = {
+    //    val img = load[Image]("iaprtc12/images/", InputType.IMAGE)
+    //
+    //    val colorLayout = img.connect(f_colorLayout)
+    //    val edgeHistogram = img.connect(f_edgeHistogram)
+    //    val gabor = img.connect(f_gabor)
+    //    
+    //    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
+    //    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
+    //    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
+
     val img = load[Image]("images", InputType.IMAGE)
-    
+
     val colorLayout = img.connect(f_colorLayout)
     val edgeHistogram = img.connect(f_edgeHistogram)
     val gabor = img.connect(f_gabor)
-    
-    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
-    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
-    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
-    
+
+    val res1 = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout))
+    res1.accept(s)
+    res1.cache = None
+    val res2 = edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram))
+    res2.accept(s)
+    res2.cache = None
+    val res3 = gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor))
+    res3.accept(s)
+    res3.cache = None
     //val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
 
     //val idx = index(f_luceneIdx, img.connect(f_cedd).connect(f_luceneDocTransformer), img.connect(f_fcth).connect(f_luceneDocTransformer))
