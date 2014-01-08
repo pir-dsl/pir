@@ -54,7 +54,7 @@ object SparkObject {
 	  val sparkHostString = if ("local" == hostname) hostname + "[" + numCore + "]" else "spark://" + hostname + ":" + port
 	  //System.clearProperty("spark.master.port")
 		  
-	  System.setProperty("spark.serializer", "org.apache.spark.serializer.KryoSerializer")		  
+	  //System.setProperty("spark.serializer", "org.apache.spark.serializer.KryoSerializer")		  
 	  System.setProperty("spark.scheduler.mode", "FAIR")
 	  System.setProperty("spark.task.maxFailures", "6")
 	  new SparkContext(sparkHostString, appName, "/" + sparkHome, Seq(pirAssembly))  
