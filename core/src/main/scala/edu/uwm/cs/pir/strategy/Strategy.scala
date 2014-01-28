@@ -6,6 +6,8 @@ import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.compile.Visitor
 import edu.uwm.cs.pir.graph.Source.SourcePipe
+import edu.uwm.cs.pir.graph.Source.SortPipe
+import edu.uwm.cs.pir.graph.Source.FilterPipe
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.misc._
 
@@ -54,6 +56,46 @@ object Strategy {
           pipe.right.apply(elem)
         }
         pipe.cache = Some(sparkContext.parallelize(result))
+        //pipe.cache = Some(result)
+      }
+    }
+
+    override def visit[In <: IFeature: ClassManifest](pipe: SortPipe[In], order: Boolean) {
+      if (pipe.cache == None) {
+        pipe.left.accept(this)
+        val left = pipe.left.cache match {
+          case Some(d) => d
+          case None => null
+        }
+        val first = left.first
+        first match {
+          case a: LireDistanceFeatureAdaptor =>
+          case _ => throw new RuntimeException("Sort cannot be performed for feature type: " + first)
+        }
+        val sorted = left.toArray.sortWith((e1, e2) =>
+          e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
+            <
+            e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance())
+        pipe.cache = Some(sparkContext.parallelize(sorted))
+      }
+    }
+
+    override def visit[In <: IFeature: ClassManifest](pipe: FilterPipe[In]) {
+      if (pipe.cache == None) {
+        pipe.left.accept(this)
+        val left = pipe.left.cache match {
+          case Some(d) => d
+          case None => null
+        }
+
+        val result = for {
+          elem <- left.toArray
+          evalRes = pipe.right(elem, this)
+          if (evalRes)
+        } yield {
+          elem
+        }
+        pipe.cache = Some(sparkContext.parallelize(result.toArray[In]))
         //pipe.cache = Some(result)
       }
     }
@@ -247,12 +289,12 @@ object Strategy {
         time(loadFunc(q))("" + q)
       }
     }
-    
-    def loadFunc[In <: IFeature, Out <: IFeature: ClassManifest](q: LoadStage[In, Out]) : Unit = {
-        val fileList = sparkContext.parallelize(q.load.fileList, sparkPartitionSize.toInt)
-        val result = fileList.map { elem => q.load.apply(elem).get }.persist
-        //log("result = " + result.collect)
-        q.cache = Some(result)
+
+    def loadFunc[In <: IFeature, Out <: IFeature: ClassManifest](q: LoadStage[In, Out]): Unit = {
+      val fileList = sparkContext.parallelize(q.load.fileList, sparkPartitionSize.toInt)
+      val result = fileList.map { elem => q.load.apply(elem).get }.persist
+      //log("result = " + result.collect)
+      q.cache = Some(result)
     }
 
     override def visit[In <: IFeature, Out <: IFeature: ClassManifest](pipe: SourcePipe[In, Out]) {

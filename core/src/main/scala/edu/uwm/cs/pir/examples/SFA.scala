@@ -16,6 +16,7 @@ import edu.uwm.cs.pir.compile.Function._
 import edu.uwm.cs.pir.compile.Scope._
 import edu.uwm.cs.pir.strategy.Strategy._
 import edu.uwm.cs.pir.compile._
+import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.spark.SparkObject._
 
 object SFA {
@@ -23,12 +24,12 @@ object SFA {
     if (args.length != 1) {
       usage
     } else {
-      
+
       sparkContext = initSparkConf
       awsS3Config = initAWSS3Config
-      
+
       val env = args(0)
-      
+
       if ("se" == env) {
         time(sequentialSFA()) {
           "sequentialSFA"
@@ -54,7 +55,7 @@ object SFA {
   }
 
   def usage: Unit = {
-    println("USAGE: SFA \"se/p/sp 1/2 env.conf\"");
+    println("USAGE: SFA \"se/p/sp env.conf\"");
     println("where se to run program sequentially, " + "p parallely, and sp in Spark; ");
     println("env.conf is a customized configuration file to replace the default one")
     println("see sample-application.conf for details")
@@ -81,28 +82,22 @@ object SFA {
 //    val colorLayout = img.connect(f_colorLayout)
 //    val edgeHistogram = img.connect(f_edgeHistogram)
 //    val gabor = img.connect(f_gabor)
-//    
+//
 //    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
 //    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
 //    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
-    
-    val img = load[Image]("images", InputType.IMAGE)
-    
-    val colorLayout = img.connect(f_colorLayout)
-    val edgeHistogram = img.connect(f_edgeHistogram)
-    val cedd = img.connect(f_cedd)
-    val gabor = img.connect(f_gabor)
-    
-    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
-    //edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
-    cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).accept(s)
-    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
-    
-    //val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
 
-    //val idx = index(f_luceneIdx, img.connect(f_cedd).connect(f_luceneDocTransformer), img.connect(f_fcth).connect(f_luceneDocTransformer))
-
-    //query(f_weightedQuery, idx, qImg).accept(s)
+    val img1 = load[Image]("images", InputType.IMAGE)
+    val colorLayout = img1.connect(f_colorLayout)
+    val colorLayoutDis = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).sort("ascending")
+    val img2 = img1.filter(f_top(colorLayoutDis.asInstanceOf[SourceComponent[IFeature]], 2000))
+    val cedd = img2.connect(f_cedd)
+    val ceddDis = cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).sort("ascending")
+    val img3 = img2.filter(f_top(ceddDis.asInstanceOf[SourceComponent[IFeature]], 500))
+    val gabor = img3.connect(f_gabor)
+    val gaborDis = gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).sort("ascending")
+    val img4 = img3.filter(f_top(gaborDis.asInstanceOf[SourceComponent[IFeature]], 100))
+    img4.accept(s)
   }
 
 }

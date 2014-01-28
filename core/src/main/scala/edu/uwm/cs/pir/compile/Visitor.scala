@@ -12,6 +12,8 @@ import edu.uwm.cs.pir.graph.Vertex
 class Visitor {
       def visit[In <: IFeature, Out <: IFeature  : ClassManifest] (load: LoadStage[In, Out]) {}
       def visit[In <: IFeature, Out <: IFeature : ClassManifest] (pipe: SourcePipe[In, Out]) {}
+      def visit[In <: IFeature: ClassManifest] (pipe: FilterPipe[In]) {}
+      def visit[In <: IFeature: ClassManifest] (pipe: SortPipe[In], order : Boolean) {}
       def visit[In <: IFeature, Middle <:IFeature, Out <: IFeature] (pipe: ProjPipe[In, Middle, Out]) {}
       def visit[In <: IFeature, Out <: IFeature] (proj: ProjStage[In, Out]) {}
       def visit[In <: IFeature, Out <: IFeature, Model <: IModel] (proj: ProjWithModelStage[In, Out, Model]) {}

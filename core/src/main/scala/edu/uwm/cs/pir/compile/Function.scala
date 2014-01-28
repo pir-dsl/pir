@@ -4,11 +4,14 @@ import edu.uwm.cs.mir.prototypes.feature._
 import edu.uwm.cs.mir.prototypes.proj.lucene._
 import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.pir.misc.Constants._
+import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
 import edu.uwm.cs.pir.spark.SparkObject._
 import edu.uwm.cs.mir.prototypes.feature.lire._
 import net.semanticmetadata.lire.imageanalysis.LireFeature
+
+//import org.apache.spark.rdd._
 
 object Function {
 
@@ -19,6 +22,16 @@ object Function {
       image
     }))
 
+  def f_top [In <: IFeature](list: SourceComponent[In], size: Int): (In, Visitor) => Boolean = {
+    (in, v) => {
+      if (list.cache == None) {
+        list.accept(v)
+      }
+      val cache = list.cache.get.take(size).map(elem => elem.getId[Object]())
+      cache.contains(in.getId[Object]())
+    }
+  }
+  
   def f_colorLayout() = new GenericColorLayout()
 
   def f_edgeHistogram() = new GenericEdgeHistogram()
