@@ -6,6 +6,7 @@ import edu.uwm.cs.mir.prototypes.composer._
 import edu.uwm.cs.mir.prototypes.model._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
+import edu.uwm.cs.pir.misc.Constants._
 import edu.uwm.cs.pir.strategy.Strategy._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Proj._
@@ -14,11 +15,23 @@ import edu.uwm.cs.pir.compile.Visitor
 
 import org.apache.spark.rdd._
 
+//class Key (id: String, implicit val value: Float) extends Ordered[Key] {
+//  def compare(key : Key) = value.compareTo(key.value)
+//  override def toString(): String = "(" + id + "=" + value + ")";
+//}
+
 object Source {
 
   trait SourceComponent[Out <: IFeature] extends Vertex {
 
-    def filter(func: (Out, Visitor) => Boolean) (implicit c: ClassManifest[Out]) : SourceComponent[Out] = {
+    def collect: List[Out] = {
+      if (cache == None) {
+    	  this.accept(GLOBAL_STRATEGY)
+      }
+      cache.get.collect.toList
+    }
+    
+    def filter(func: Out => Boolean) (implicit c: ClassManifest[Out]) : SourceComponent[Out] = {
       new FilterPipe[Out](this, func)(c)
     }
 
@@ -57,7 +70,7 @@ object Source {
     override def toString(): String = " -> "
   }
 
-  class FilterPipe[In <: IFeature](val left: SourceComponent[In], val right: (In, Visitor) => Boolean) (implicit c: ClassManifest[In]) 
+  class FilterPipe[In <: IFeature](val left: SourceComponent[In], val right: In => Boolean) (implicit c: ClassManifest[In]) 
     extends SourceComponent[In] with Serializable {
 
     override def accept(v: Visitor) = v.visit(this)

@@ -90,7 +90,7 @@ object Strategy {
 
         val result = for {
           elem <- left.toArray
-          evalRes = pipe.right(elem, this)
+          evalRes = pipe.right(elem)
           if (evalRes)
         } yield {
           elem

@@ -22,16 +22,13 @@ object Function {
       image
     }))
 
-  def f_top [In <: IFeature](list: SourceComponent[In], size: Int): (In, Visitor) => Boolean = {
-    (in, v) => {
-      if (list.cache == None) {
-        list.accept(v)
+  def f_top[In <: IFeature](list: List[LireDistanceFeatureAdaptor], size: Int): In => Boolean = {
+    in =>
+      {
+        list.take(size).map(elem => elem.getId).contains(in.getId)
       }
-      val cache = list.cache.get.take(size).map(elem => elem.getId[Object]())
-      cache.contains(in.getId[Object]())
-    }
   }
-  
+
   def f_colorLayout() = new GenericColorLayout()
 
   def f_edgeHistogram() = new GenericEdgeHistogram()

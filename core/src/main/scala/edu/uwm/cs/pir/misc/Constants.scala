@@ -1,6 +1,7 @@
 package edu.uwm.cs.pir.misc
 
 import edu.uwm.cs.pir.spark.SparkObject._
+import edu.uwm.cs.pir.strategy.Strategy._
 
 object Constants {
     
@@ -56,4 +57,5 @@ object Constants {
     val GIBBS_SAMPLING_THINNING = 1;
     val GIBBS_SAMPLING_BURNIN = 5;
 
+    var GLOBAL_STRATEGY : RunStrategy = null
 }
