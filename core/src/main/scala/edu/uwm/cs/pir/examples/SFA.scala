@@ -102,13 +102,13 @@ object SFA {
     val img1 = load[Image]("images", InputType.IMAGE)
     val colorLayout = img1.connect(f_colorLayout)
     val colorLayoutDis = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).sort("ascending")
-    val img2 = img1.filter(f_top(colorLayoutDis.collect, 2000))
+    val img2 = img1.filter(f_top(colorLayoutDis.collect.take(2000)))
     val cedd = img2.connect(f_cedd)
     val ceddDis = cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).sort("ascending")
-    val img3 = img2.filter(f_top(ceddDis.collect, 500))
+    val img3 = img2.filter(f_top(ceddDis.collect.take(500)))
     val gabor = img3.connect(f_gabor)
     val gaborDis = gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).sort("ascending")
-    val img4 = img3.filter(f_top(gaborDis.collect, 100))
+    val img4 = img3.filter(f_top(gaborDis.collect.take(100)))
     img4.accept(GLOBAL_STRATEGY)
   }
 

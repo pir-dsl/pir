@@ -75,7 +75,7 @@ object Source {
 
     override def accept(v: Visitor) = v.visit(this)
 
-    override def toString(): String = " ->f "
+    override def toString(): String = " ~f "
   }
   
   class SortPipe[In <: IFeature](val left: SourceComponent[In], val order : String) (implicit c: ClassManifest[In]) 
@@ -83,7 +83,7 @@ object Source {
 
     override def accept(v: Visitor) = v.visit(this, if ("ascending" == order) true else false)
 
-    override def toString(): String = " ->f "
+    override def toString(): String = " <f< "
   }
 
 }
