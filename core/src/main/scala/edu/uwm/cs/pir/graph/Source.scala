@@ -14,6 +14,7 @@ import edu.uwm.cs.pir.compile.Scope._
 import edu.uwm.cs.pir.compile.Visitor
 
 import org.apache.spark.rdd._
+import scala.reflect.ClassTag
 
 //class Key (id: String, implicit val value: Float) extends Ordered[Key] {
 //  def compare(key : Key) = value.compareTo(key.value)
@@ -31,15 +32,15 @@ object Source {
       cache.get.collect.toList
     }
     
-    def filter(func: Out => Boolean) (implicit c: ClassManifest[Out]) : SourceComponent[Out] = {
+    def filter(func: Out => Boolean) (implicit c: ClassTag[Out]) : SourceComponent[Out] = {
       new FilterPipe[Out](this, func)(c)
     }
 
-    def sort(order: String) (implicit c: ClassManifest[Out]) : SourceComponent[Out] = {
+    def sort(order: String) (implicit c: ClassTag[Out]) : SourceComponent[Out] = {
       new SortPipe[Out](this, order)(c)
     }
 
-    def connect[NewOut <: IFeature: ClassManifest](stage: ProjComponent[Out, NewOut]): SourceComponent[NewOut] = {
+    def connect[NewOut <: IFeature: ClassTag](stage: ProjComponent[Out, NewOut]): SourceComponent[NewOut] = {
       new SourcePipe[Out, NewOut](this, stage)
     }
 
@@ -62,7 +63,7 @@ object Source {
 
   }
 
-  class SourcePipe[In <: IFeature, Out <: IFeature: ClassManifest](val left: SourceComponent[In], val right: ProjComponent[In, Out])
+  class SourcePipe[In <: IFeature, Out <: IFeature: ClassTag](val left: SourceComponent[In], val right: ProjComponent[In, Out])
     extends SourceComponent[Out] with Serializable {
 
     override def accept(v: Visitor) = v.visit(this)
@@ -70,7 +71,7 @@ object Source {
     override def toString(): String = " -> "
   }
 
-  class FilterPipe[In <: IFeature](val left: SourceComponent[In], val right: In => Boolean) (implicit c: ClassManifest[In]) 
+  class FilterPipe[In <: IFeature](val left: SourceComponent[In], val right: In => Boolean) (implicit c: ClassTag[In]) 
     extends SourceComponent[In] with Serializable {
 
     override def accept(v: Visitor) = v.visit(this)
@@ -78,7 +79,7 @@ object Source {
     override def toString(): String = " ~f "
   }
   
-  class SortPipe[In <: IFeature](val left: SourceComponent[In], val order : String) (implicit c: ClassManifest[In]) 
+  class SortPipe[In <: IFeature](val left: SourceComponent[In], val order : String) (implicit c: ClassTag[In]) 
     extends SourceComponent[In] with Serializable {
 
     override def accept(v: Visitor) = v.visit(this, if ("ascending" == order) true else false)

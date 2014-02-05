@@ -57,6 +57,6 @@ object SparkObject {
 	  //System.setProperty("spark.serializer", "org.apache.spark.serializer.KryoSerializer")		  
 	  System.setProperty("spark.scheduler.mode", "FAIR")
 	  System.setProperty("spark.task.maxFailures", "1")
-	  new SparkContext(sparkHostString, appName, "/" + sparkHome, Seq(pirAssembly))  
+	  new SparkContext(sparkHostString, appName, "/" + sparkHome, Seq(pirAssembly), Map(), Map())  
   }
 }

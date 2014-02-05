@@ -6,8 +6,8 @@ import AssemblyKeys._
 object PirBuild extends Build {
   
   // Target JVM version
-  val SCALAC_JVM_VERSION = "jvm-1.5"
-  val JAVAC_JVM_VERSION = "1.5"
+  val SCALAC_JVM_VERSION = "jvm-1.6"
+  val JAVAC_JVM_VERSION = "1.6"
   
   lazy val root = Project("root", file("."), settings = rootSettings) aggregate(allProjects: _*)
   
@@ -20,7 +20,7 @@ object PirBuild extends Build {
   def sharedSettings = Defaults.defaultSettings ++ Seq(
     organization := "edu.uwm.cs",
     version := "0.1.0",
-    scalaVersion := "2.9.3",
+    scalaVersion := "2.10.3",
     scalacOptions := Seq("-unchecked", "-optimize", "-deprecation", "-target:" + SCALAC_JVM_VERSION),
     javacOptions := Seq("-target", JAVAC_JVM_VERSION, "-source", JAVAC_JVM_VERSION),
     unmanagedBase <<= baseDirectory { base => base / "custom_lib" },

@@ -13,12 +13,13 @@ import edu.uwm.cs.mir.prototypes.composer._
 import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.mir.prototypes.feature.lire._
 import scala.collection.JavaConverters._
+import scala.reflect.ClassTag
 import edu.uwm.cs.pir.compile.Visitor
 
 object Stage {
 
   @SerialVersionUID(1L)
-  class LoadStage[In <: IFeature, Out <: IFeature : ClassManifest](val load: GenericLoad[Out])
+  class LoadStage[In <: IFeature, Out <: IFeature : ClassTag](val load: GenericLoad[Out])
     extends SourceComponent[Out] with Serializable {
 
     override def accept(v: Visitor) = v.visit(this)

@@ -4,7 +4,6 @@
 	<classpathentry kind="src" path="core/src/main/scala"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="spark/spark-assembly_2.9.3-0.8.0-incubating-hadoop1.0.4.jar"/>
 	<classpathentry kind="lib" path="assembly/target/scala-2.9.3/pir-assembly-0.1.0.jar" sourcepath="/DSL_MIR/src/main/java"/>
 	<classpathentry kind="lib" path="core/custom_lib/scalatest_2.9.3-2.0.M5b.jar"/>
 	<classpathentry kind="lib" path="core/custom_lib/slf4j-log4j12-1.6.2.jar"/>
@@ -36,5 +35,6 @@
 	<classpathentry kind="lib" path="core/custom_lib/slf4j-api-1.7.2.jar"/>
 	<classpathentry kind="lib" path="core/custom_lib/DSL_MIR-0.0.1-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib_managed/jars/metadata-extractor-2.6.2.jar"/>
+	<classpathentry kind="lib" path="spark/spark-assembly_2.10-0.9.0-incubating.jar"/>
 	<classpathentry kind="output" path="target/scala-2.9.3"/>
 </classpath>
