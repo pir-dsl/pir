@@ -1,0 +1,10 @@
+# execute the pir ImageQuery example program with a customized config file against sample data on the Spark cluster
+# where -cp spark/spark-assembly_2.9.3-0.8.0-incubating-hadoop1.0.4.jar:assembly/target/scala-2.9.3/pir-assembly-0.1.0.jar
+# is the class path for Spark and pir
+# -Dspark.akka.frameSize=10 provides a 10MB frameSize for Spark (see http://spark.incubator.apache.org/docs/latest/configuration.html for details)
+# -Dconfig.file=env.conf is the customized config file (use sample-application.conf for template)
+# edu.uwm.cs.pir.examples.ImageQuery is the example program
+# sp indicates running against Spark cluster
+# 1 indicates running against the sample data (comes with the pir deployment), 2 will be running against the client own data (location is set in config file)
+
+java -cp spark/spark-assembly_2.9.3-0.8.0-incubating-hadoop1.0.4.jar:assembly/target/scala-2.9.3/pir-assembly-0.1.0.jar -Dspark.akka.frameSize=10 -Dconfig.file=env.conf edu.uwm.cs.pir.examples.ImageQuery sp 1

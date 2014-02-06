@@ -1,0 +1,7 @@
+/.cache
+/target
+/core/target
+/assembly/target
+/project/target
+/project/project/target
+/assembly
