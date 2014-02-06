@@ -29,7 +29,7 @@ object Source {
       if (cache == None) {
     	  this.accept(GLOBAL_STRATEGY)
       }
-      cache.get.collect.toList
+      cache.get.persist.toList
     }
     
     def filter(func: Out => Boolean) (implicit c: ClassTag[Out]) : SourceComponent[Out] = {
