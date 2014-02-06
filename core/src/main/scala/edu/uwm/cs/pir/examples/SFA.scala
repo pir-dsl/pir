@@ -99,7 +99,7 @@ object SFA {
     //    val img4 = img3.filter(f_top(gaborDis.asInstanceOf[SourceComponent[IFeature]], 100))
     //    img4.accept(s)
 
-    val img1 = load[Image]("images", InputType.IMAGE)
+    val img1 = load[Image](SAMPLE_IMAGES_ROOT + "training", InputType.IMAGE)
     val colorLayout = img1.connect(f_colorLayout)
     val colorLayoutDis = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).sort("ascending")
     val img2 = img1.filter(f_top(colorLayoutDis.collect.take(2000)))
