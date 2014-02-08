@@ -15,12 +15,17 @@ import net.semanticmetadata.lire.imageanalysis.LireFeature
 
 object Function {
 
-  def f_FeatureDistance(queryImagePath: String, proj: GenericProj[Image, LireFeatureAdaptor]) =
-    new GenericFeatureDistance(proj.apply({
+  def f_lireFeatureAdaptor(queryImagePath: String, proj: GenericProj[Image, LireFeatureAdaptor]) : LireFeatureAdaptor = {
+    proj.apply({
       val image: Image = new Image(queryImagePath)
       if (awsS3Config.isIs_s3_storage()) image.setAWSS3Config(awsS3Config)
       image
-    }))
+    })
+  }
+  
+  def f_featureDistance(lireFeatureAdaptor: LireFeatureAdaptor) = {
+    new GenericFeatureDistance(lireFeatureAdaptor)
+  }
 
   def f_top[In <: IFeature](listP: List[LireDistanceFeatureAdaptor]): In => Boolean = {
     val list = listP
