@@ -22,7 +22,8 @@ object Function {
       image
     }))
 
-  def f_top[In <: IFeature](list: List[LireDistanceFeatureAdaptor]): In => Boolean = {
+  def f_top[In <: IFeature](listP: List[LireDistanceFeatureAdaptor]): In => Boolean = {
+    val list = listP
     in =>
       {
         list.map(elem => elem.getId).contains(in.getId)
