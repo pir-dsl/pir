@@ -77,48 +77,28 @@ object SFA {
   }
 
   def getQ() = {
-    //    val img = load[Image]("iaprtc12/images/", InputType.IMAGE)
-    //
-    //    val colorLayout = img.connect(f_colorLayout)
-    //    val edgeHistogram = img.connect(f_edgeHistogram)
-    //    val gabor = img.connect(f_gabor)
-    //
-    //    colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).accept(s)
-    //    edgeHistogram.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_edgeHistogram)).accept(s)
-    //    gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).accept(s)
 
-    //    val img1 = load[Image]("images", InputType.IMAGE)
-    //    val colorLayout = img1.connect(f_colorLayout)
-    //    val colorLayoutDis = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).sort("ascending")
-    //    val img2 = img1.filter(f_top(colorLayoutDis.asInstanceOf[SourceComponent[IFeature]], 2000))
-    //    val cedd = img2.connect(f_cedd)
-    //    val ceddDis = cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).sort("ascending")
-    //    val img3 = img2.filter(f_top(ceddDis.asInstanceOf[SourceComponent[IFeature]], 500))
-    //    val gabor = img3.connect(f_gabor)
-    //    val gaborDis = gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).sort("ascending")
-    //    val img4 = img3.filter(f_top(gaborDis.asInstanceOf[SourceComponent[IFeature]], 100))
-    //    img4.accept(s)
-
-    val img1 = load[Image]("images", InputType.IMAGE)
+    val img1 = load[Image]("images", InputType.IMAGE) 
     val colorLayout = img1.connect(f_colorLayout)
-    val colorLayoutDis = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)).sort("ascending").collect.take(2000)
+    val colorLayoutDis = colorLayout.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout))/*.sort("ascending")*/.collect.take(24)
     
     log("colorLayoutDis.size = " + colorLayoutDis.size)("INFO")
     
     val img2 = img1.filter(f_top(colorLayoutDis))
-    val cedd = img2.connect(f_cedd)
-    val ceddDis = cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).sort("ascending").collect.take(500)
+    img2.accept(GLOBAL_STRATEGY)
+    /*val cedd = img2.connect(f_cedd)
+    val ceddDis = cedd.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)).sort("ascending").collect.take(16)
     
     log("ceddDis.size = " + ceddDis.size)("INFO")
     
     val img3 = img2.filter(f_top(ceddDis))
     val gabor = img3.connect(f_gabor)
-    val gaborDis = gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).sort("ascending").collect.take(100)
+    val gaborDis = gabor.connect(f_FeatureDistance(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)).sort("ascending").collect.take(8)
     
     log("gaborDis.size = " + gaborDis.size)("INFO")
     
     val img4 = img3.filter(f_top(gaborDis))
-    img4.accept(GLOBAL_STRATEGY)
+    img4.accept(GLOBAL_STRATEGY)*/
   }
 
 }
