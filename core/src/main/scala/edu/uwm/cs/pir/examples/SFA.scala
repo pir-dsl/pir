@@ -82,17 +82,17 @@ object SFA {
     val colorLayout = img1.connect(f_colorLayout)
     
     val colorFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)
-    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor))/*.sort("ascending").collect.take(24)*/
-    colorLayoutDis.accept(GLOBAL_STRATEGY)    
-    log("ending")("INFO")
+    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor)).sort("ascending").collect.take(2000)
+    //colorLayoutDis.accept(GLOBAL_STRATEGY)    
+    //log("ending")("INFO")
     
     //log("colorLayoutDis.size = " + colorLayoutDis.size)("INFO")
-    /*val img2 = img1.filter(f_top(colorLayoutDis.collect.take(2000)))
-    img2.accept(GLOBAL_STRATEGY)
+    val img2 = img1.filter(f_top(colorLayoutDis))
+    //img2.accept(GLOBAL_STRATEGY)
     val cedd = img2.connect(f_cedd)
     
     val ceddFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)
-    val ceddDis = cedd.connect(f_featureDistance(ceddFeatureAdaptor)).sort("ascending").collect.take(16)
+    val ceddDis = cedd.connect(f_featureDistance(ceddFeatureAdaptor)).sort("ascending").collect.take(500)
     
     log("ceddDis.size = " + ceddDis.size)("INFO")
     
@@ -100,12 +100,12 @@ object SFA {
     val gabor = img3.connect(f_gabor)
     val gaborFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)
     
-    val gaborDis = gabor.connect(f_featureDistance(gaborFeatureAdaptor)).sort("ascending").collect.take(8)
+    val gaborDis = gabor.connect(f_featureDistance(gaborFeatureAdaptor)).sort("ascending").collect.take(100)
     
     log("gaborDis.size = " + gaborDis.size)("INFO")
     
     val img4 = img3.filter(f_top(gaborDis))
-    img4.accept(GLOBAL_STRATEGY)*/
+    img4.accept(GLOBAL_STRATEGY)
   }
 
 }
