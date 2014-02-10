@@ -158,8 +158,9 @@ object GenericImpl {
     val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply ColorLayout to " + in.getId())("INFO")
-      if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
-      colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
+      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+      new LireFeatureAdaptor(in.getId(), null, "")
     }
 
     override def setIndex(index: IIndex): Unit = {}
@@ -192,27 +193,13 @@ object GenericImpl {
     override def setModel(model: IModel): Unit = {}
   }
 
-//  @SerialVersionUID(1L)
-//  case class GenericCEDD(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
-//    val cedd = new CEDD(scaleWidth, scaleHeight)
-//    override def apply(in: Image): LireFeatureAdaptor = {
-//      log("Apply CEDD to " + in.getId())("INFO")
-//      if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
-//      cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
-//    }
-//
-//    override def setIndex(index: IIndex): Unit = {}
-//    override def setModel(model: IModel): Unit = {}
-//  }
-  
   @SerialVersionUID(1L)
   case class GenericCEDD(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
-    //val cedd = new CEDD(scaleWidth, scaleHeight)
+    val cedd = new CEDD(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply CEDD to " + in.getId())("INFO")
-      new LireFeatureAdaptor(in.getId(), null, "CEDD");
-      //if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
-      //cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
+      if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
+      cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
     override def setIndex(index: IIndex): Unit = {}
