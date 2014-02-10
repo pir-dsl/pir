@@ -133,19 +133,20 @@ object GenericImpl {
 
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
-      if (in == null) {
-        new LireDistanceFeatureAdaptor("nullId", -1F)
-      } else {
-        //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-        //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-        val distance: Float = try {
-          in.getLireFeature().getDistance(queryFeature.getLireFeature())
-        } catch {
-          case npe: NullPointerException => -1F
-          case e: Exception => throw new RuntimeException(e)
-        }
-        new LireDistanceFeatureAdaptor(in.getId(), distance)
-      }
+      new LireDistanceFeatureAdaptor("nullId", -1F)
+//      if (in == null) {
+//        new LireDistanceFeatureAdaptor("nullId", -1F)
+//      } else {
+//        //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+//        //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+//        val distance: Float = try {
+//          in.getLireFeature().getDistance(queryFeature.getLireFeature())
+//        } catch {
+//          case npe: NullPointerException => -1F
+//          case e: Exception => throw new RuntimeException(e)
+//        }
+//        new LireDistanceFeatureAdaptor(in.getId(), distance)
+//      }
     }
 
     override def setIndex(index: IIndex): Unit = {}
@@ -191,13 +192,27 @@ object GenericImpl {
     override def setModel(model: IModel): Unit = {}
   }
 
+//  @SerialVersionUID(1L)
+//  case class GenericCEDD(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
+//    val cedd = new CEDD(scaleWidth, scaleHeight)
+//    override def apply(in: Image): LireFeatureAdaptor = {
+//      log("Apply CEDD to " + in.getId())("INFO")
+//      if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
+//      cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
+//    }
+//
+//    override def setIndex(index: IIndex): Unit = {}
+//    override def setModel(model: IModel): Unit = {}
+//  }
+  
   @SerialVersionUID(1L)
   case class GenericCEDD(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
-    val cedd = new CEDD(scaleWidth, scaleHeight)
+    //val cedd = new CEDD(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply CEDD to " + in.getId())("INFO")
-      if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
-      cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
+      new LireFeatureAdaptor(in.getId(), null, "CEDD");
+      //if (awsS3Config.isIs_s3_storage()) cedd.setAWSS3Config(awsS3Config)
+      //cedd.apply(in).asInstanceOf[LireFeatureAdaptor]
     }
 
     override def setIndex(index: IIndex): Unit = {}
