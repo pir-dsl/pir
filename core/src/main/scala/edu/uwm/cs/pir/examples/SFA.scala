@@ -79,9 +79,9 @@ object SFA {
   def getQ() = {
 
     val img1 = load[Image]("images", InputType.IMAGE) 
-    val colorLayout = img1.connect(f_colorLayout)
-    
-    val dummyResult = colorLayout.connect(f_dummyColorLayout)
+    //val colorLayout = img1.connect(f_colorLayout)
+    val pipe = f_colorLayout.connect(f_dummyColorLayout)
+    val dummyResult = img1.connect(pipe)
     dummyResult.accept(GLOBAL_STRATEGY)    
     log("ending")("INFO")
     
