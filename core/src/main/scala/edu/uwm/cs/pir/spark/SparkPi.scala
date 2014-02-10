@@ -17,7 +17,7 @@ object SparkPi {
 	  System.setProperty("spark.executor.memory", "256m")
 
     val spark = new SparkContext("local[4]", "SparkPi",
-      System.getenv("/SPARK_HOME"), Seq("assembly/target/scala-2.9.3/pir-assembly-0.1.0.jar"), Map(), Map())
+      System.getenv("/SPARK_HOME"), Seq("assembly/target/scala-2.9.3/pir-assembly-0.1.0.jar"))
 
     val slices = if (args.length > 0) args(0).toInt else 2
     val n = 100000 * slices

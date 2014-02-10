@@ -14,13 +14,11 @@ import edu.uwm.cs.mir.prototypes.composer._
 import edu.uwm.cs.mir.prototypes.model._
 import edu.uwm.cs.mir.prototypes.feature.wikipedia._
 
-import scala.reflect.ClassTag
-
 object Compile {
 
   import edu.uwm.cs.pir.compile.Generic.GenericInterface._
   import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
-  def load[Out <: IFeature : ClassTag](path: String, inputType: InputType): SourceComponent[Out] = {
+  def load[Out <: IFeature : ClassManifest](path: String, inputType: InputType): SourceComponent[Out] = {
     if (inputType == InputType.IMAGE) {
       new GenericImageLoad[Out](path)
     } else if (inputType == InputType.TEXT) {

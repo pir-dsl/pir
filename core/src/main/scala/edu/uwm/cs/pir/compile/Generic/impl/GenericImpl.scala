@@ -133,8 +133,7 @@ object GenericImpl {
 
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
-      new LireDistanceFeatureAdaptor("nullId", -1F)
-      /*if (in == null) {
+      if (in == null) {
         new LireDistanceFeatureAdaptor("nullId", -1F)
       } else {
         //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
@@ -146,7 +145,7 @@ object GenericImpl {
           case e: Exception => throw new RuntimeException(e)
         }
         new LireDistanceFeatureAdaptor(in.getId(), distance)
-      }*/
+      }
     }
 
     override def setIndex(index: IIndex): Unit = {}

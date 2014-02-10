@@ -8,11 +8,9 @@ import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.graph.Proj._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 
-import scala.reflect.ClassTag
-
 object Scope {
 
-  implicit def loadToSourceStage[In <: IFeature, Out <: IFeature : ClassTag]
+  implicit def loadToSourceStage[In <: IFeature, Out <: IFeature : ClassManifest]
   (load: GenericLoad[Out]) = new LoadStage[In, Out](load)
 
   implicit def projToProjStage[In <: IFeature, Out <: IFeature]

@@ -82,7 +82,7 @@ object ImageQuery {
 
   def getQ(dataset: String) = {
     val img = load[Image]((if ("1" == dataset) SAMPLE_IMAGES_ROOT else WIKIPEDIA_IMAGES_ROOT) + "training", InputType.IMAGE)
-    val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/1000.jpg", InputType.IMAGE)
+    val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
 
     val idx = index(f_luceneIdx, img.connect(f_cedd).connect(f_luceneDocTransformer), img.connect(f_fcth).connect(f_luceneDocTransformer))
 

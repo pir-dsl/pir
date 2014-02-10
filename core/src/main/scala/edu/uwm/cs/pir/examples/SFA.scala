@@ -82,11 +82,11 @@ object SFA {
     val colorLayout = img1.connect(f_colorLayout)
     
     val colorFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)
-    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor)).sort("ascending").collect.take(2000)
-    //colorLayoutDis.accept(GLOBAL_STRATEGY)    
-    //log("ending")("INFO")
+    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor))//.sort("ascending").collect.take(2000)
+    colorLayoutDis.accept(GLOBAL_STRATEGY)    
+    log("ending")("INFO")
     
-    //log("colorLayoutDis.size = " + colorLayoutDis.size)("INFO")
+    /*//log("colorLayoutDis.size = " + colorLayoutDis.size)("INFO")
     val img2 = img1.filter(f_top(colorLayoutDis))
     //img2.accept(GLOBAL_STRATEGY)
     val cedd = img2.connect(f_cedd)
@@ -105,7 +105,7 @@ object SFA {
     log("gaborDis.size = " + gaborDis.size)("INFO")
     
     val img4 = img3.filter(f_top(gaborDis))
-    img4.accept(GLOBAL_STRATEGY)
+    img4.accept(GLOBAL_STRATEGY)*/
   }
 
 }
