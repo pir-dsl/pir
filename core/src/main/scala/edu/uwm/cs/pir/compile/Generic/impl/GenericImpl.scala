@@ -158,9 +158,9 @@ object GenericImpl {
     val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
     override def apply(in: Image): LireFeatureAdaptor = {
       log("Apply ColorLayout to " + in.getId())("INFO")
-      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
-      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
-      new LireFeatureAdaptor(in.getId(), null, "")
+      if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
+      colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+      //new LireFeatureAdaptor(in.getId(), null, "")
     }
 
     override def setIndex(index: IIndex): Unit = {}
