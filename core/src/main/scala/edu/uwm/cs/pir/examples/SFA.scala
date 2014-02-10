@@ -81,10 +81,14 @@ object SFA {
     val img1 = load[Image]("images", InputType.IMAGE) 
     val colorLayout = img1.connect(f_colorLayout)
     
-    val colorFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)
-    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor))//.sort("ascending").collect.take(2000)
-    colorLayoutDis.accept(GLOBAL_STRATEGY)    
+    val dummyResult = colorLayout.connect(f_dummyColorLayout)
+    dummyResult.accept(GLOBAL_STRATEGY)    
     log("ending")("INFO")
+    
+//    val colorFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)
+//    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor))//.sort("ascending").collect.take(2000)
+//    colorLayoutDis.accept(GLOBAL_STRATEGY)    
+//    log("ending")("INFO")
     
     /*//log("colorLayoutDis.size = " + colorLayoutDis.size)("INFO")
     val img2 = img1.filter(f_top(colorLayoutDis))
