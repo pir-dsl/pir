@@ -299,6 +299,7 @@ object Strategy {
 
     override def visit[In <: IFeature, Out <: IFeature: ClassManifest](pipe: SourcePipe[In, Out]) {
       if (pipe.cache == None) {
+        log("in visit SourcePipe " + pipe)("INFO")
         time(projFunc(pipe, this))("" + pipe.right + " on " + pipe.left)
       } else {
         log("pipe = " + pipe + ", pipe.left = " + pipe.left + ", pipe.right = " + pipe.right)
