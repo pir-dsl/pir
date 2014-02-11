@@ -133,20 +133,20 @@ object GenericImpl {
 
     override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
       log("Apply FeatureDistance to " + in.getId())("INFO")
-      new LireDistanceFeatureAdaptor("nullId", -1F)
-//      if (in == null) {
-//        new LireDistanceFeatureAdaptor("nullId", -1F)
-//      } else {
-//        //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-//        //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
-//        val distance: Float = try {
-//          in.getLireFeature().getDistance(queryFeature.getLireFeature())
-//        } catch {
-//          case npe: NullPointerException => -1F
-//          case e: Exception => throw new RuntimeException(e)
-//        }
-//        new LireDistanceFeatureAdaptor(in.getId(), distance)
-//      }
+      //new LireDistanceFeatureAdaptor("nullId", -1F)
+      if (in == null) {
+        new LireDistanceFeatureAdaptor("nullId", -1F)
+      } else {
+        //log("Source LireFeature ByteArrayRepresentation is " + in.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+        //log("Target LireFeature ByteArrayRepresentation is " + cachedQueryFeature.getLireFeature().getByteArrayRepresentation().map(elem => elem + ". "))("INFO")
+        val distance: Float = try {
+          in.getLireFeature().getDistance(queryFeature.getLireFeature())
+        } catch {
+          case npe: NullPointerException => -1F
+          case e: Exception => throw new RuntimeException(e)
+        }
+        new LireDistanceFeatureAdaptor(in.getId(), distance)
+      }
     }
 
     override def setIndex(index: IIndex): Unit = {}
@@ -167,20 +167,20 @@ object GenericImpl {
     override def setModel(model: IModel): Unit = {}
   }
   
-  @SerialVersionUID(1L)
-  case class GenericDummyColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
-    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
-    override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
-      log("Apply DummyColorLayout to " + in.getId())("INFO")
-      new LireDistanceFeatureAdaptor("nullId", 0)
-      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
-      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
-      //new LireFeatureAdaptor(in.getId(), null, "")
-    }
-
-    override def setIndex(index: IIndex): Unit = {}
-    override def setModel(model: IModel): Unit = {}
-  }
+//  @SerialVersionUID(1L)
+//  case class GenericDummyColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
+//    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
+//    override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
+//      log("Apply DummyColorLayout to " + in.getId())("INFO")
+//      new LireDistanceFeatureAdaptor("nullId", 0)
+//      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
+//      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+//      //new LireFeatureAdaptor(in.getId(), null, "")
+//    }
+//
+//    override def setIndex(index: IIndex): Unit = {}
+//    override def setModel(model: IModel): Unit = {}
+//  }
 
   @SerialVersionUID(1L)
   case class GenericEdgeHistogram(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {

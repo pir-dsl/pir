@@ -19,6 +19,10 @@ object Source {
 
   trait SourceComponent[Out <: IFeature] extends Vertex {
 
+    def printIds: Unit = {
+      collect.map(elem => println(elem.getId()))
+    }
+    
     def collect: List[Out] = {
       if (cache == None) {
     	  this.accept(GLOBAL_STRATEGY)

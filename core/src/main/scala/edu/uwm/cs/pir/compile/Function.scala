@@ -35,7 +35,7 @@ object Function {
       }
   }
 
-  def f_dummyColorLayout() = new GenericDummyColorLayout()
+  //def f_dummyColorLayout() = new GenericDummyColorLayout()
   
   def f_colorLayout() = new GenericColorLayout()
 

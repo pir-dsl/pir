@@ -78,37 +78,23 @@ object SFA {
 
   def getQ() = {
 
-    val img1 = load[Image]("images", InputType.IMAGE) 
-    val colorLayout = img1.connect(f_colorLayout)
-    val dummyResult = colorLayout.connect(f_dummyColorLayout)
-    dummyResult.accept(GLOBAL_STRATEGY)    
-    log("ending")("INFO")
-    
-//    val colorFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)
-//    val colorLayoutDis = colorLayout.connect(f_featureDistance(colorFeatureAdaptor))//.sort("ascending").collect.take(2000)
-//    colorLayoutDis.accept(GLOBAL_STRATEGY)    
-//    log("ending")("INFO")
-    
-    /*//log("colorLayoutDis.size = " + colorLayoutDis.size)("INFO")
-    val img2 = img1.filter(f_top(colorLayoutDis))
-    //img2.accept(GLOBAL_STRATEGY)
-    val cedd = img2.connect(f_cedd)
-    
+    val colorFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_colorLayout)
     val ceddFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_cedd)
-    val ceddDis = cedd.connect(f_featureDistance(ceddFeatureAdaptor)).sort("ascending").collect.take(500)
-    
-    log("ceddDis.size = " + ceddDis.size)("INFO")
-    
-    val img3 = img2.filter(f_top(ceddDis))
-    val gabor = img3.connect(f_gabor)
     val gaborFeatureAdaptor = f_lireFeatureAdaptor(SAMPLE_IMAGES_ROOT + "test/1000.jpg", f_gabor)
     
-    val gaborDis = gabor.connect(f_featureDistance(gaborFeatureAdaptor)).sort("ascending").collect.take(100)
+    val pipe1 = f_colorLayout.connect(f_featureDistance(colorFeatureAdaptor))
+    val pipe2 = f_cedd.connect(f_featureDistance(ceddFeatureAdaptor))
+    val pipe3 = f_gabor.connect(f_featureDistance(gaborFeatureAdaptor))
     
-    log("gaborDis.size = " + gaborDis.size)("INFO")
-    
-    val img4 = img3.filter(f_top(gaborDis))
-    img4.accept(GLOBAL_STRATEGY)*/
+    val img1 = load[Image]("images", InputType.IMAGE) 
+    val colorLayoutDist = img1.connect(pipe1).sort("ascending").collect.take(2000)
+    val img2 = img1.filter(f_top(colorLayoutDist))
+    val ceddDist = img2.connect(pipe2).sort("ascending").collect.take(500)
+    val img3 = img2.filter(f_top(ceddDist))
+    val gaborDist = img3.connect(pipe3).sort("ascending").collect.take(100)
+    val img4 = img3.filter(f_top(gaborDist))
+    img4.accept(GLOBAL_STRATEGY)
+    img4.printIds
   }
 
 }
