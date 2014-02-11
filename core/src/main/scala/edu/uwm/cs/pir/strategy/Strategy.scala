@@ -76,6 +76,7 @@ object Strategy {
           e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
             <
             e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance())
+        pipe.result = sorted  
         pipe.cache = Some(sparkContext.parallelize(sorted))
       }
     }

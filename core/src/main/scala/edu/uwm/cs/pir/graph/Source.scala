@@ -27,7 +27,7 @@ object Source {
       if (cache == None) {
     	  this.accept(GLOBAL_STRATEGY)
       }
-      cache.get.persist.toArray.toList
+      result.toList
     }
     
     def filter(func: Out => Boolean) (implicit c: ClassManifest[Out]) : SourceComponent[Out] = {
@@ -57,6 +57,7 @@ object Source {
 
     var isDirty = false
     var cache: Option[RDD[Out]] = None
+    var result : Array[Out] = null
     //var cache : Option[List[Out]] = None
 
   }
