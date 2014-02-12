@@ -11,6 +11,7 @@ import edu.uwm.cs.pir.strategy.Strategy._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Proj._
 import edu.uwm.cs.pir.compile.Scope._
+import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.compile.Visitor
 
 import org.apache.spark.rdd._
@@ -29,9 +30,13 @@ object Source {
       }
       
       if (result == null) {
+        log("list from cache") ("info")
         cache.get.collect.toList
       }
-      else result.toList
+      else {
+        log("list from result") ("info")
+        result.toList
+      }
     }
     
     def filter(func: Out => Boolean) (implicit c: ClassManifest[Out]) : SourceComponent[Out] = {

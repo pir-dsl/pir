@@ -73,9 +73,13 @@ object Strategy {
           case _ => throw new RuntimeException("Sort cannot be performed for feature type: " + first)
         }
         val sorted = left.toArray.sortWith((e1, e2) =>
-          e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
-            <
-            e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance())
+          if (order) {
+            e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() <=
+            e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
+            } else {
+              e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() >
+              e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
+            })
         pipe.result = sorted  
         pipe.cache = Some(sparkContext.parallelize(sorted))
       }
