@@ -18,7 +18,6 @@ import edu.uwm.cs.mir.prototypes.feature.lire._
 import edu.uwm.cs.mir.prototypes.composer.ICompose
 import edu.uwm.cs.mir.prototypes.composer._
 
-import scala.reflect.ClassTag
 import scala.collection.JavaConverters._
 import java.util.concurrent.{ Callable, Executors }
 import java.util.ArrayList
@@ -33,15 +32,15 @@ object Strategy {
   trait RunStrategy extends Visitor {
     val mergeOp: Boolean = false
 
-    //Below we need to provide a type bound ClassTag for Out, same for a few other visit methods
-    override def visit[In <: IFeature, Out <: IFeature: ClassTag](q: LoadStage[In, Out]) = {
+    //Below we need to provide a type bound ClassManifest for Out, same for a few other visit methods
+    override def visit[In <: IFeature, Out <: IFeature: ClassManifest](q: LoadStage[In, Out]) = {
       if (q.cache == None) {
         val fileListLoaded = q.load.fileList.map(file => q.load.apply(file).get)
         q.cache = Some(sparkContext.parallelize(fileListLoaded))
       }
     }
 
-    override def visit[In <: IFeature, Out <: IFeature: ClassTag](pipe: SourcePipe[In, Out]) {
+    override def visit[In <: IFeature, Out <: IFeature: ClassManifest](pipe: SourcePipe[In, Out]) {
       if (pipe.cache == None) {
         pipe.left.accept(this)
         val left = pipe.left.cache match {
@@ -61,7 +60,7 @@ object Strategy {
       }
     }
 
-    override def visit[In <: IFeature: ClassTag](pipe: SortPipe[In], order: Boolean) {
+    override def visit[In <: IFeature: ClassManifest](pipe: SortPipe[In], order: Boolean) {
       if (pipe.cache == None) {
         pipe.left.accept(this)
         val left = pipe.left.cache match {
@@ -74,14 +73,19 @@ object Strategy {
           case _ => throw new RuntimeException("Sort cannot be performed for feature type: " + first)
         }
         val sorted = left.toArray.sortWith((e1, e2) =>
-          e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
-            <
-            e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance())
+          if (order) {
+            e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() <=
+            e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
+            } else {
+              e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() >
+              e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
+            })
+        pipe.result = sorted  
         pipe.cache = Some(sparkContext.parallelize(sorted))
       }
     }
 
-    override def visit[In <: IFeature: ClassTag](pipe: FilterPipe[In]) {
+    override def visit[In <: IFeature: ClassManifest](pipe: FilterPipe[In]) {
       if (pipe.cache == None) {
         pipe.left.accept(this)
         val left = pipe.left.cache match {
@@ -229,7 +233,7 @@ object Strategy {
 
   case class ParallelStrategy(val maxNumberOfThreads: Int) extends RunStrategy {
 
-    override def visit[In <: IFeature, Out <: IFeature: ClassTag](pipe: SourcePipe[In, Out]) {
+    override def visit[In <: IFeature, Out <: IFeature: ClassManifest](pipe: SourcePipe[In, Out]) {
 
       if (pipe.cache == None) {
 
@@ -285,21 +289,22 @@ object Strategy {
 
   case class SparkStrategy() extends RunStrategy {
 
-    override def visit[In <: IFeature, Out <: IFeature: ClassTag](q: LoadStage[In, Out]) = {
+    override def visit[In <: IFeature, Out <: IFeature: ClassManifest](q: LoadStage[In, Out]) = {
       if (q.cache == None) {
         time(loadFunc(q))("" + q)
       }
     }
 
-    def loadFunc[In <: IFeature, Out <: IFeature: ClassTag](q: LoadStage[In, Out]): Unit = {
+    def loadFunc[In <: IFeature, Out <: IFeature: ClassManifest](q: LoadStage[In, Out]): Unit = {
       val fileList = sparkContext.parallelize(q.load.fileList, sparkPartitionSize.toInt)
       val result = fileList.map { elem => q.load.apply(elem).get }.persist
       //log("result = " + result.collect)
       q.cache = Some(result)
     }
 
-    override def visit[In <: IFeature, Out <: IFeature: ClassTag](pipe: SourcePipe[In, Out]) {
+    override def visit[In <: IFeature, Out <: IFeature: ClassManifest](pipe: SourcePipe[In, Out]) {
       if (pipe.cache == None) {
+        log("in visit SourcePipe " + pipe)("INFO")
         time(projFunc(pipe, this))("" + pipe.right + " on " + pipe.left)
       } else {
         log("pipe = " + pipe + ", pipe.left = " + pipe.left + ", pipe.right = " + pipe.right)
@@ -308,7 +313,7 @@ object Strategy {
 
   }
 
-  def projFunc[In <: IFeature, Out <: IFeature: ClassTag](pipe: SourcePipe[In, Out], strategy: RunStrategy): Unit = {
+  def projFunc[In <: IFeature, Out <: IFeature: ClassManifest](pipe: SourcePipe[In, Out], strategy: RunStrategy): Unit = {
     pipe.left.accept(strategy)
     val left = pipe.left.cache match {
       case Some(d) => d
@@ -324,7 +329,7 @@ object Strategy {
     pipe.cache = Some(result)
   }
 
-  def getResultList[In <: IFeature, Out <: IFeature: ClassTag](rdd: RDD[In], proj: ProjComponent[In, Out]): RDD[Out] = {
+  def getResultList[In <: IFeature, Out <: IFeature: ClassManifest](rdd: RDD[In], proj: ProjComponent[In, Out]): RDD[Out] = {
     if (rdd == null || rdd == Nil) {
       null
     } else {

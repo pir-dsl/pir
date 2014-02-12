@@ -11,6 +11,7 @@ import edu.uwm.cs.pir.strategy.Strategy._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Proj._
 import edu.uwm.cs.pir.compile.Scope._
+import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.compile.Visitor
 
 import org.apache.spark.rdd._
@@ -25,11 +26,23 @@ object Source {
 
   trait SourceComponent[Out <: IFeature] extends Vertex {
 
+    def printIds: Unit = {
+      collect.map(elem => println(elem.getId()))
+    }
+    
     def collect: List[Out] = {
       if (cache == None) {
     	  this.accept(GLOBAL_STRATEGY)
       }
-      cache.get.persist.toArray.toList
+      
+      if (result == null) {
+        log("list from cache") ("info")
+        cache.get.collect.toList
+      }
+      else {
+        log("list from result") ("info")
+        result.toList
+      }
     }
     
     def filter(func: Out => Boolean) (implicit c: ClassTag[Out]) : SourceComponent[Out] = {
@@ -59,6 +72,7 @@ object Source {
 
     var isDirty = false
     var cache: Option[RDD[Out]] = None
+    var result : Array[Out] = null
     //var cache : Option[List[Out]] = None
 
   }
@@ -86,5 +100,6 @@ object Source {
 
     override def toString(): String = " <f< "
   }
+
 
 }

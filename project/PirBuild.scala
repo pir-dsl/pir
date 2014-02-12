@@ -34,7 +34,7 @@ object PirBuild extends Build {
     //javaOptions += "-Xmx3g",
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "org.scalatest" %% "scalatest" % "2.0" % "test",
       "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
       "com.novocode" % "junit-interface" % "0.9" % "test",
       "org.easymock" % "easymock" % "3.1" % "test"   

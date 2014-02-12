@@ -35,6 +35,8 @@ object Function {
       }
   }
 
+  //def f_dummyColorLayout() = new GenericDummyColorLayout()
+  
   def f_colorLayout() = new GenericColorLayout()
 
   def f_edgeHistogram() = new GenericEdgeHistogram()

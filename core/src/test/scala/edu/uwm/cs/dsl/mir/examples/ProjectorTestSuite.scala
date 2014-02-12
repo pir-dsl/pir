@@ -21,14 +21,19 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ProjectorTestSuite extends FunSuite {
 
-  val img = new Image(Constants.SAMPLE_IMAGES_ROOT + "test/1000.jpg")
-  val colorLayout = f_colorLayout.apply(img)
-  val edgeHistogram = f_edgeHistogram.apply(img)
-  val gabor = f_gabor.apply(img)
+//  val img = new Image(Constants.SAMPLE_IMAGES_ROOT + "test/1000.jpg")
+//  val colorLayout = f_colorLayout.apply(img)
+//  val edgeHistogram = f_edgeHistogram.apply(img)
+//  val gabor = f_gabor.apply(img)
 
-  test("Connectivity test") {
-    assert(colorLayout != null)
-    assert(edgeHistogram != null)
-    assert(gabor != null)
+//  test("Connectivity test") {
+//    assert(colorLayout != null)
+//    assert(edgeHistogram != null)
+//    assert(gabor != null)
+//  }
+  
+  test ("Sorting") {
+    val array = List(3,7,5,2).toArray.sortWith((e1, e2) => e1 < e2)
+    array.map(elem => print(elem))
   }
 }

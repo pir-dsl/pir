@@ -25,10 +25,9 @@ object Proj {
     override def accept(v:Visitor) = v.visit(this)
  
     def apply(f: In) : Out = {
-      log("right = " + right + ", left = " + left + ", f = " + f)
+      //log("right = " + right + ", left = " + left + ", f = " + f)
       right.apply(left.apply(f))
     }
   }
 
 }
-
