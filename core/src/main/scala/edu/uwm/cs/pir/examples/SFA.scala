@@ -93,7 +93,7 @@ object SFA {
     val img3 = img2.filter(f_top(ceddDist))
     val gaborDist = img3.connect(pipe3).sort("ascending").collect.take(100)
     val img4 = img3.filter(f_top(gaborDist))
-    img4.accept(GLOBAL_STRATEGY)
+    img4.collect
     img4.printIds
   }
 
