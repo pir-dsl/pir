@@ -212,6 +212,11 @@ object Strategy {
       }
       index.cacheIndex
     }
+    
+    override def visit[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index]) = {
+      //TODO
+      index.cacheIndex
+    }
 
   }
 

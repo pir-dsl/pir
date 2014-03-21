@@ -18,10 +18,26 @@ object GenericInterface {
     def apply(url: String): Option[Out]
   }
 
+  trait BasicIndex extends Serializable {
+	  
+  }
+  
+  trait BasicIndexer[In <: IFeature] {
+	def apply(qs : List[In]) : BasicIndex
+	def getName() : String
+  }
+  
   trait GenericIndex[In <: IFeature, Index <: IIndex] extends Serializable {
     def apply(in: List[List[In]]): Index
     def index(source: List[SourceComponent[In]]): IndexStage[In, Index] = {
       new IndexStage[In, Index](this, source)
+    }
+  }
+  
+  trait GenericBasicIndex[In <: IFeature, Index <: BasicIndex] extends Serializable {
+    def apply(in: List[In]): Index
+    def index(source: SourceComponent[In]): HistogramIndexStage[In, Index] = {
+      new HistogramIndexStage[In, Index](this, source)
     }
   }
 

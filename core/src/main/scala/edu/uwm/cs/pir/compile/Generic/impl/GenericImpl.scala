@@ -90,6 +90,19 @@ object GenericImpl {
       }
     }
   }
+  
+  @SerialVersionUID(1L)
+  case class GenericHistogramIndex[In <: IFeature, Index <: BasicIndex](val indexer: BasicIndexer[In]) extends GenericBasicIndex[In, Index] {
+    override def apply(in: List[In]): Index = {
+      log("Apply Histogram Index to " + in.getClass().getCanonicalName())("INFO")
+      indexer.apply(in).asInstanceOf[Index]
+    }
+
+    override def index(histogramList: SourceComponent[In]): HistogramIndexStage[In, Index] = {
+      new HistogramIndexStage[In, Index](this, histogramList)
+    }
+
+  }
 
   @SerialVersionUID(1L)
   case class GenericLuceneIndex[In <: IFeature, Index <: IIndex](val indexer: IIndexer) extends GenericIndex[In, Index] {

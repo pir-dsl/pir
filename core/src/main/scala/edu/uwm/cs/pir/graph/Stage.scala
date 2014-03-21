@@ -100,6 +100,22 @@ object Stage {
    
     override def toString = "Index Stage-" + indexer
   }
+  
+  @SerialVersionUID(1L)
+  class HistogramIndexStage[In <: IFeature, Index <: BasicIndex]
+  (val indexer: GenericBasicIndex[In, Index], val source: SourceComponent[In]) extends Vertex with Serializable {
+
+    var isDirty = false
+    var cacheIndex: Option[Index] = None
+    
+    def setIndex(index : Option[Index]) : Unit = {
+      cacheIndex = index
+    }
+    
+    override def accept(v: Visitor) = v.visit(this)
+   
+    override def toString = "Index Stage-" + indexer
+  }
 
   @SerialVersionUID(1L)
   class LuceneQueryStage[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose]
