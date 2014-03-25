@@ -73,5 +73,10 @@ object Function {
     val indexer = new LuceneIndexer(INDEX_IMAGE_FEATURE_ROOT)
     new GenericLuceneIndex[Image, IIndex](indexer)
   }
+  
+  def f_histogramIdx() = {
+    val indexer = new GenericInvertedIndexer()
+    new GenericHistogramIndex[SiftFeatureAdaptor, BasicIndex](indexer)
+  }
 
 }

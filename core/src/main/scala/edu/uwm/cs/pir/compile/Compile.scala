@@ -33,7 +33,16 @@ object Compile {
   def index(idx: GenericLuceneIndex[Image, IIndex], featureList: SourceComponent[LuceneFeatureAdaptor]*): IndexStage[Image, IIndex] = {
     idx.index(featureList)
   }
+  
+  def naiveIndex(idx: GenericHistogramIndex[SiftFeatureAdaptor, BasicIndex], featureSource: SourceComponent[SiftFeatureAdaptor]): HistogramIndexStage[SiftFeatureAdaptor, BasicIndex] = {
+    idx.index(featureSource)
+  }
 
+  def invertedIndexQuery(query: GenericLuceneQuery, idx: HistogramIndexStage[SiftFeatureAdaptor, BasicIndex], qImg: SourceComponent[Image]) = {
+    //TODO
+    null
+  }
+  
   def query(query: GenericLuceneQuery, idx: IndexStage[Image, IIndex], qImg: SourceComponent[Image], ratio: Double = 0.5) = {
     val weights: List[Double] = List(ratio, 1 - ratio)
     val compose = new GenericLuceneCompose[Image, LuceneWeightedQueryResult](weights)

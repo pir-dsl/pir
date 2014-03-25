@@ -22,8 +22,8 @@ object GenericInterface {
 	  
   }
   
-  trait BasicIndexer[In <: IFeature] {
-	def apply(qs : List[In]) : BasicIndex
+  trait BasicIndexer {
+	def apply[In <: IFeature](qs : List[In]) : BasicIndex
 	def getName() : String
   }
   

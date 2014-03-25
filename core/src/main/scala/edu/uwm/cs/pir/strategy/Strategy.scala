@@ -215,11 +215,28 @@ object Strategy {
     
     override def visit[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index]) = {
       //TODO
+      if (index.cacheIndex == None) {
+        time(basicIndexFunc(index, this))("" + index.indexer)
+      }
       index.cacheIndex
     }
 
   }
 
+  def basicIndexFunc[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
+    var fs: List[List[IFeature]] = List(Nil)
+
+    index.source.accept(strategy)
+    
+    fs = fs :+ (index.source.cache match {
+        case Some(d) => d.toArray.toList
+        case None => null
+      })
+    
+    log("index data with " + index.indexer + "\n")
+    index.setIndex(Some(index.indexer.apply(fs.asInstanceOf[List[In]])))
+  }
+  
   def indexFunc[In <: IFeature, Index <: IIndex](index: IndexStage[In, Index], strategy: RunStrategy): Unit = {
     var fs: List[List[IFeature]] = List(Nil)
 

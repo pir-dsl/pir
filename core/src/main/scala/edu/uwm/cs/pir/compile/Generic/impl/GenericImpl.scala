@@ -92,7 +92,17 @@ object GenericImpl {
   }
   
   @SerialVersionUID(1L)
-  case class GenericHistogramIndex[In <: IFeature, Index <: BasicIndex](val indexer: BasicIndexer[In]) extends GenericBasicIndex[In, Index] {
+  case class GenericInvertedIndexer[In <: IFeature] extends BasicIndexer {
+	override def apply[In <: IFeature](qs : List[In]) = {
+	   null
+	}
+	override def getName() : String = {
+	  null
+	}
+  }
+  
+  @SerialVersionUID(1L)
+  case class GenericHistogramIndex[In <: IFeature, Index <: BasicIndex](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
     override def apply(in: List[In]): Index = {
       log("Apply Histogram Index to " + in.getClass().getCanonicalName())("INFO")
       indexer.apply(in).asInstanceOf[Index]
@@ -312,7 +322,7 @@ object GenericImpl {
 
   @SerialVersionUID(1L)
   case class GenericCluster(numberOfClusters: Int = NUM_OF_CLUSTERS)
-    extends GenericProjWithModel[SiftFeatureAdaptor, Histogram, ClusterModel] {
+    extends GenericProjWithModel[Histogram, Histogram, ClusterModel] {
 
     override def setIndex(index: IIndex): Unit = {}
     override def setModel(model: IModel): Unit = {
@@ -321,7 +331,7 @@ object GenericImpl {
 
     val cluster = new ClusterProj(numberOfClusters)
 
-    override def apply(in: SiftFeatureAdaptor): Histogram = {
+    override def apply(in: Histogram): Histogram = {
       log("Apply Cluster to " + in.getId())("INFO")
       if (awsS3Config.isIs_s3_storage()) cluster.setAWSS3Config(awsS3Config)
       cluster.setModel(this.model.get)
