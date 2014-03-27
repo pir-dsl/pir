@@ -1,11 +1,8 @@
-PIR (Pipeline Information Retrieval) is a software framework that aims at providing a Scala-based high-level programming
-language for Multimedia Information Retrieval (MIR) domain. Specifically, PIR is hosted in Scala and allows the user to perform
-complex MIR tasks by writing simple and straightforward script-like statements. Out of the box, PIR supports a few MIR libraries (e.g. Lire and Mallet)
-Users are also able to plug in their own favorite software packages into the system with simple customizing. Probably the biggest 
-advantage of PIR is that its two stage execution strategy. PIR first "compiles" user's code into a execution graph which can then be 
-optimized (e.g. parallellization). By only focusing on high-level constructs of the program, users can focus on the domain problems while
-the implementation details can be analyzed and optimized separately in compile time and hence the execution performance can be hugely
-increased.
+Multimedia Information Retrieval (MIR) experiments on large data sets are resource intensive and time consuming. Recent development of distributed computing platforms such as Cloud services offers great opportunity to improve runtime performance. However, adapting existing MIR applications to such platforms is difficult even for embarrassingly parallel problems.
+
+PIR helps deploy MIR applications onto distributed platforms directly without code change. The DSL programs are sequential and the DSL ``compiler" transforms each DSL program to a pipeline graph that can be executed in distributed platforms.
+
+The expressiveness and effectiveness of the DSL have been evaluated by deploying MIR applications written in the DSL on Amazon EC2. A MapReduce framework -- Spark is utilized to distribute the parallel tasks such as data loading and feature extraction to Amazon EC2 worker nodes. The results show that the DSL programs can achieve good performance scalability on distributed platforms.
 
 PIR is under pure GNU 2 license currently. 
 
