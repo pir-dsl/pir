@@ -77,12 +77,12 @@ object Strategy {
         val sorted = left.toArray.sortWith((e1, e2) =>
           if (order) {
             e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() <=
-            e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
-            } else {
-              e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() >
               e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
-            })
-        pipe.result = sorted  
+          } else {
+            e1.asInstanceOf[LireDistanceFeatureAdaptor].getDistance() >
+              e2.asInstanceOf[LireDistanceFeatureAdaptor].getDistance()
+          })
+        pipe.result = sorted
         pipe.cache = Some(sparkContext.parallelize(sorted))
       }
     }
@@ -212,7 +212,7 @@ object Strategy {
       }
       index.cacheIndex
     }
-    
+
     override def visit[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index]) = {
       //TODO
       if (index.cacheIndex == None) {
@@ -224,19 +224,19 @@ object Strategy {
   }
 
   def basicIndexFunc[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
-    var fs: List[List[IFeature]] = List(Nil)
+    var fs: List[IFeature] = Nil
 
     index.source.accept(strategy)
-    
-    fs = fs :+ (index.source.cache match {
-        case Some(d) => d.toArray.toList
-        case None => null
-      })
-    
+
+    fs = index.source.cache match {
+      case Some(d) => d.toArray.toList
+      case None => null
+    }
+
     log("index data with " + index.indexer + "\n")
     index.setIndex(Some(index.indexer.apply(fs.asInstanceOf[List[In]])))
   }
-  
+
   def indexFunc[In <: IFeature, Index <: IIndex](index: IndexStage[In, Index], strategy: RunStrategy): Unit = {
     var fs: List[List[IFeature]] = List(Nil)
 

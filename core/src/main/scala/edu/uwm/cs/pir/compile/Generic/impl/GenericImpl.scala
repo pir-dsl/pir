@@ -90,17 +90,42 @@ object GenericImpl {
       }
     }
   }
-  
+
   @SerialVersionUID(1L)
   case class GenericInvertedIndexer[In <: IFeature] extends BasicIndexer {
-	override def apply[In <: IFeature](qs : List[In]) = {
-	   null
-	}
-	override def getName() : String = {
-	  null
-	}
+
+    class Tokenizer(val p: String = "[^a-z0-9]+") {
+      //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
+      def tokenize(s: String) = s.toLowerCase.split(p)//.filter(!stopwords.contains(_))
+    }
+    
+    case class Posting(docId: Int, var tf: Int)
+    case class Result(docId: Int, doc: String, score: Double)
+
+    //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
+    override def apply[In <: IFeature](qs: List[In]) : BasicIndex = {
+      val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
+      val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
+      def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
+      def index(doc: String) { //dataset.size = current doc Id
+        val tokenizer = new Tokenizer
+        for (term <- tokenizer.tokenize(doc)) {
+          val list = invertedIndex.getOrElse(term, Nil)
+          if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
+            list.head.tf += 1
+          else //first time of this term in the document 
+            invertedIndex.put(term, Posting(dataset.size, 1) :: list)
+        }
+        dataset += doc
+      }
+      null
+    }
+    
+    override def getName(): String = {
+      "GenericInvertedIndexer"
+    }
   }
-  
+
   @SerialVersionUID(1L)
   case class GenericHistogramIndex[In <: IFeature, Index <: BasicIndex](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
     override def apply(in: List[In]): Index = {
@@ -124,7 +149,7 @@ object GenericImpl {
     def index(featureList: Seq[SourceComponent[LuceneFeatureAdaptor]]): IndexStage[In, Index] = {
       new IndexStage[In, Index](this, featureList.toList.map(elem => elem.asInstanceOf[SourceComponent[In]]))
     }
-
+ 
   }
 
   @SerialVersionUID(1L)
@@ -189,21 +214,21 @@ object GenericImpl {
     override def setIndex(index: IIndex): Unit = {}
     override def setModel(model: IModel): Unit = {}
   }
-  
-//  @SerialVersionUID(1L)
-//  case class GenericDummyColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
-//    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
-//    override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
-//      log("Apply DummyColorLayout to " + in.getId())("INFO")
-//      new LireDistanceFeatureAdaptor("nullId", 0)
-//      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
-//      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
-//      //new LireFeatureAdaptor(in.getId(), null, "")
-//    }
-//
-//    override def setIndex(index: IIndex): Unit = {}
-//    override def setModel(model: IModel): Unit = {}
-//  }
+
+  //  @SerialVersionUID(1L)
+  //  case class GenericDummyColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
+  //    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
+  //    override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
+  //      log("Apply DummyColorLayout to " + in.getId())("INFO")
+  //      new LireDistanceFeatureAdaptor("nullId", 0)
+  //      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
+  //      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+  //      //new LireFeatureAdaptor(in.getId(), null, "")
+  //    }
+  //
+  //    override def setIndex(index: IIndex): Unit = {}
+  //    override def setModel(model: IModel): Unit = {}
+  //  }
 
   @SerialVersionUID(1L)
   case class GenericEdgeHistogram(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
@@ -322,7 +347,7 @@ object GenericImpl {
 
   @SerialVersionUID(1L)
   case class GenericCluster(numberOfClusters: Int = NUM_OF_CLUSTERS)
-    extends GenericProjWithModel[Histogram, Histogram, ClusterModel] {
+    extends GenericProjWithModel[SiftFeatureAdaptor, Histogram, ClusterModel] {
 
     override def setIndex(index: IIndex): Unit = {}
     override def setModel(model: IModel): Unit = {
@@ -331,7 +356,7 @@ object GenericImpl {
 
     val cluster = new ClusterProj(numberOfClusters)
 
-    override def apply(in: Histogram): Histogram = {
+    override def apply(in: SiftFeatureAdaptor): Histogram = {
       log("Apply Cluster to " + in.getId())("INFO")
       if (awsS3Config.isIs_s3_storage()) cluster.setAWSS3Config(awsS3Config)
       cluster.setModel(this.model.get)
