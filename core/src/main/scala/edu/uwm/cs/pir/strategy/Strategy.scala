@@ -125,6 +125,20 @@ object Strategy {
         })
     }
 
+    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
+      query.source.accept(this)
+      query.index.accept(this)
+
+      val left = (query.index.asInstanceOf[SourcePipe[In, IFeature]]).left
+      val right = (query.index.asInstanceOf[SourcePipe[IFeature, Out]]).right
+      val elem = query.source.cache.get.first
+      val queryFeature = right.apply(left.asInstanceOf[SourcePipe[In, IFeature]].right.apply(elem))
+
+      query.query.setIndex(query.index.cacheIndex.get)
+      val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
+      //TODO
+    }
+
     override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose](query: LuceneQueryStage[In, Out, Index, Compose]) {
       //The below source is a query source
       query.source.accept(this)

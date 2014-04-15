@@ -68,6 +68,8 @@ object Function {
   def f_ldaProj = new GenericLDA()
 
   def f_weightedQuery() = new GenericLuceneQuery()
+  
+  def f_naiveIndexQuery() = new GenericNaiveIndexQuery()
 
   def f_luceneIdx() = {
     val indexer = new LuceneIndexer(INDEX_IMAGE_FEATURE_ROOT)

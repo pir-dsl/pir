@@ -5,6 +5,7 @@ import edu.uwm.cs.pir.misc.InputType
 import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.compile.Scope._
+import edu.uwm.cs.pir.compile.Function._
 
 import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.mir.prototypes.feature._
@@ -38,9 +39,9 @@ object Compile {
     idx.index(featureSource)
   }
 
-  def invertedIndexQuery(query: GenericLuceneQuery, idx: HistogramIndexStage[SiftFeatureAdaptor, BasicIndex], qImg: SourceComponent[Image]) = {
-    //TODO
-    null
+  def invertedIndexQuery(query: GenericNaiveIndexQuery, idx: HistogramIndexStage[SiftFeatureAdaptor, BasicIndex], qImg: SourceComponent[Image]) = {
+    //The 3rd parameter qImg is not used at all, it's there to remove the compilation error that's caused by confusion the compiler encountered
+    qImg.connect(f_sift).connect(query, null, null)
   }
   
   def query(query: GenericLuceneQuery, idx: IndexStage[Image, IIndex], qImg: SourceComponent[Image], ratio: Double = 0.5) = {

@@ -153,6 +153,22 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
+  case class GenericNaiveIndexQuery() extends GenericProjWithIndex[IFeature, LuceneQueryResultAdaptor, LuceneIndex] {
+    //TODO
+    def apply(in: IFeature): LuceneQueryResultAdaptor = {
+      val luceneQuery = new LuceneQuery()
+      luceneQuery.setIndex(this.index.get)
+      luceneQuery.apply(in).asInstanceOf[LuceneQueryResultAdaptor]
+    }
+
+    override def setIndex(index: IIndex): Unit = {
+      this.index = Some(index.asInstanceOf[LuceneIndex])
+    }
+
+    override def setModel(model: IModel): Unit = {}
+  }
+    
+  @SerialVersionUID(1L)
   case class GenericLuceneQuery() extends GenericProjWithIndex[IFeature, LuceneQueryResultAdaptor, LuceneIndex] {
     def apply(in: IFeature): LuceneQueryResultAdaptor = {
       val luceneQuery = new LuceneQuery()

@@ -5,13 +5,13 @@ import com.typesafe.config._
 
 import edu.uwm.cs.mir.prototypes.feature._
 
+import edu.uwm.cs.pir.compile.Scope._
 import edu.uwm.cs.pir.strategy.Strategy._
 import edu.uwm.cs.pir.misc.InputType
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.misc.Constants._
 import edu.uwm.cs.pir.compile.Compile._
 import edu.uwm.cs.pir.compile.Function._
-import edu.uwm.cs.pir.compile.Scope._
 import edu.uwm.cs.pir.compile._
 import edu.uwm.cs.pir.spark.SparkObject._
 

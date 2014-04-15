@@ -83,7 +83,7 @@ object NaiveIndexQuery {
 
     val idx = naiveIndex(f_histogramIdx, img.connect(f_sift))
 
-    invertedIndexQuery(f_weightedQuery, idx, qImg)
+    invertedIndexQuery(f_naiveIndexQuery, idx, qImg)
   }
 
 }

@@ -65,6 +65,15 @@ object Source {
       new LuceneQueryStage[Out, NewOut, Index, Compose](query.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]],
         this, index, compose)
     }
+    
+    //The 3rd parameter q is not used at all, it's there to remove the compilation error that's caused by confusion the compiler encountered
+    def connect[NewOut <: IFeature, Index <: BasicIndex](query: GenericNaiveIndexQuery, index: HistogramIndexStage[NewOut, Index], q: SourceComponent[NewOut]) = {
+      new NaiveIndexQueryStage[Out, NewOut, Index](query.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]], this, index)
+    }
+    
+    /*def connect[NewOut <: IFeature, Index <: BasicIndex](pair: (GenericProjWithIndex[Out, NewOut, Index], HistogramIndexStage[NewOut, Index])) = {
+      new NaiveIndexQueryStage[Out, NewOut, Index](pair._1.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]], this, pair._2)
+    }*/
 
     //    def connect[NewOut <: IFeature, Model <: IModel] (stage: ProjWithModelStage[Out, NewOut, Model]): SourceComponent[NewOut] = {
     //      new SourcePipe[Out, NewOut](this, stage)
