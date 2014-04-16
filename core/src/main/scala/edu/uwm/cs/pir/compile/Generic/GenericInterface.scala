@@ -51,6 +51,11 @@ object GenericInterface {
     var index: Option[Index] = None
     def apply(in: In): Out
   }
+  
+  trait GenericProjWithBasicIndex[In <: IFeature, Out <: IFeature, Index <: BasicIndex] extends GenericProj[In, Out] with Serializable {
+    var index: Option[Index] = None
+    def apply(in: In): Out
+  }
 
   trait GenericCompose[In <: IFeature, Compose <: ICompose] extends Serializable {
     def apply(in: List[List[In]]): Compose

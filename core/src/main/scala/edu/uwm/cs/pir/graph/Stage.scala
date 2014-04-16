@@ -134,8 +134,8 @@ object Stage {
   }
 
   @SerialVersionUID(1L)
-  class NaiveIndexQueryStage[In <: IFeature, Out <: IFeature, Index <: IIndex]
-   (val query: GenericProjWithIndex[In, Out, Index], 
+  class NaiveIndexQueryStage[In <: IFeature, Out <: IFeature, Index <: BasicIndex]
+   (val query: GenericProjWithBasicIndex[In, Out, Index], 
     val source: SourceComponent[In], 
     val index: HistogramIndexStage[Out, Index]) extends Vertex with Serializable {
 

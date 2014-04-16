@@ -40,8 +40,7 @@ object Compile {
   }
 
   def invertedIndexQuery(query: GenericNaiveIndexQuery, idx: HistogramIndexStage[SiftFeatureAdaptor, BasicIndex], qImg: SourceComponent[Image]) = {
-    //The 3rd parameter qImg is not used at all, it's there to remove the compilation error that's caused by confusion the compiler encountered
-    qImg.connect(f_sift).connect(query, null, null)
+    qImg.connect(f_sift).connect(query, idx)
   }
   
   def query(query: GenericLuceneQuery, idx: IndexStage[Image, IIndex], qImg: SourceComponent[Image], ratio: Double = 0.5) = {
@@ -49,10 +48,6 @@ object Compile {
     val compose = new GenericLuceneCompose[Image, LuceneWeightedQueryResult](weights)
     qImg.connect(query, idx, compose)
   }
-
-//  def train(trainer: GenericLDATrain, txt: SourceComponent[Text]): TrainStage[Text, LdaModel] = {
-//    new TrainStage[Text, LdaModel](trainer, txt)
-//  }
   
   def train(trainer: GenericLDATrain, wikiText: SourceComponent[WikiPediaTextAdaptor]): TrainStage[WikiPediaTextAdaptor, LdaModel] = {
     new TrainStage[WikiPediaTextAdaptor, LdaModel](trainer, wikiText)

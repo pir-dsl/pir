@@ -125,7 +125,7 @@ object Strategy {
         })
     }
 
-    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
+    override def visit[In <: IFeature, Out <: IFeature, Index <: BasicIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
       query.source.accept(this)
       query.index.accept(this)
 
@@ -134,8 +134,8 @@ object Strategy {
       val elem = query.source.cache.get.first
       val queryFeature = right.apply(left.asInstanceOf[SourcePipe[In, IFeature]].right.apply(elem))
 
-      query.query.setIndex(query.index.cacheIndex.get)
-      val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
+      //query.query.setBasicIndex(query.index.cacheIndex.get)
+      //val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
       //TODO
     }
 

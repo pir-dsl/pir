@@ -25,7 +25,7 @@ class Visitor {
       def visit[In <: IFeature, Index <: BasicIndex] (index: HistogramIndexStage[In, Index]) {}
       def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose] 
       (query: LuceneQueryStage[In, Out, Index, Compose]) {}
-      def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose] 
+      def visit[In <: IFeature, Out <: IFeature, Index <: BasicIndex] 
       (query: NaiveIndexQueryStage[In, Out, Index]) {}     
 }
 
