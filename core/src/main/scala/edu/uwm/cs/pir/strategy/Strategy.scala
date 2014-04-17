@@ -125,7 +125,7 @@ object Strategy {
         })
     }
 
-    override def visit[In <: IFeature, Out <: IFeature, Index <: BasicIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
+    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
       query.source.accept(this)
       query.index.accept(this)
 
@@ -134,9 +134,9 @@ object Strategy {
       val elem = query.source.cache.get.first
       val queryFeature = right.apply(left.asInstanceOf[SourcePipe[In, IFeature]].right.apply(elem))
 
-      //query.query.setBasicIndex(query.index.cacheIndex.get)
-      //val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
-      //TODO
+      query.query.setIndex(query.index.cacheIndex.get)
+      val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
+      log(queryResult)
     }
 
     override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose](query: LuceneQueryStage[In, Out, Index, Compose]) {
@@ -227,8 +227,7 @@ object Strategy {
       index.cacheIndex
     }
 
-    override def visit[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index]) = {
-      //TODO
+    override def visit[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
         time(basicIndexFunc(index, this))("" + index.indexer)
       }
@@ -237,7 +236,7 @@ object Strategy {
 
   }
 
-  def basicIndexFunc[In <: IFeature, Index <: BasicIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
+  def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
     var fs: List[IFeature] = Nil
 
     index.source.accept(strategy)

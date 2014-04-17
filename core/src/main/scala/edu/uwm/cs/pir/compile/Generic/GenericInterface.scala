@@ -23,7 +23,7 @@ object GenericInterface {
   }
   
   trait BasicIndexer {
-	def apply[In <: IFeature](qs : List[In]) : BasicIndex
+	def apply[In <: IFeature](qs : List[In]) : IIndex
 	def getName() : String
   }
   
@@ -34,7 +34,7 @@ object GenericInterface {
     }
   }
   
-  trait GenericBasicIndex[In <: IFeature, Index <: BasicIndex] extends Serializable {
+  trait GenericBasicIndex[In <: IFeature, Index <: IIndex] extends Serializable {
     def apply(in: List[In]): Index
     def index(source: SourceComponent[In]): HistogramIndexStage[In, Index] = {
       new HistogramIndexStage[In, Index](this, source)
@@ -52,7 +52,7 @@ object GenericInterface {
     def apply(in: In): Out
   }
   
-  trait GenericProjWithBasicIndex[In <: IFeature, Out <: IFeature, Index <: BasicIndex] extends GenericProj[In, Out] with Serializable {
+  trait GenericProjWithBasicIndex[In <: IFeature, Out <: IFeature, Index <: IIndex] extends GenericProj[In, Out] with Serializable {
     var index: Option[Index] = None
     def apply(in: In): Out
   }

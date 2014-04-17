@@ -21,6 +21,6 @@ object Scope {
   implicit def projWithModelToProjWithModelStage[In <: IFeature, Out <: IFeature, Model <: IModel] 
   (pair: (GenericProjWithModel[In, Out, Model], TrainComponent[Model])) = new ProjWithModelStage(pair._1, pair._2)
 
-  //implicit def projWithIndexToProjWithIndexStage[In <: IFeature, Out <: IFeature, Index <: BasicIndex] 
+  //implicit def projWithIndexToProjWithIndexStage[In <: IFeature, Out <: IFeature, Index <: IIndex] 
   //(pair: (GenericProjWithIndex[In, Out, Index], HistogramIndexStage[Out, Index])) = pair//new NaiveIndexQueryStage(pair._1, pair._2)
 }

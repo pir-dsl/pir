@@ -91,43 +91,48 @@ object GenericImpl {
     }
   }
 
+  class Tokenizer(val p: String = "[^a-z0-9]+") {
+    //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
+    def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
+  }
+
+  case class Posting(docId: Int, var tf: Int)
+  case class Result(docId: Int, doc: String, score: Double)
+
+  class Index(val tokenizer: Tokenizer) extends IIndex {
+
+    override def getLocation(): String = "";
+
+    val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
+    val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
+    def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
+    def index(doc: String) { //dataset.size = current doc Id
+      for (term <- tokenizer.tokenize(doc)) {
+        val list = invertedIndex.getOrElse(term, Nil)
+        if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
+          list.head.tf += 1
+        else //first time of this term in the document 
+          invertedIndex.put(term, Posting(dataset.size, 1) :: list)
+      }
+      dataset += doc
+    }
+  }
+
   @SerialVersionUID(1L)
   case class GenericInvertedIndexer[In <: IFeature] extends BasicIndexer {
 
-    class Tokenizer(val p: String = "[^a-z0-9]+") {
-      //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
-      def tokenize(s: String) = s.toLowerCase.split(p)//.filter(!stopwords.contains(_))
-    }
-    
-    case class Posting(docId: Int, var tf: Int)
-    case class Result(docId: Int, doc: String, score: Double)
-
     //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
-    override def apply[In <: IFeature](qs: List[In]) : BasicIndex = {
-      val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
-      val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
-      def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
-      def index(doc: String) { //dataset.size = current doc Id
-        val tokenizer = new Tokenizer
-        for (term <- tokenizer.tokenize(doc)) {
-          val list = invertedIndex.getOrElse(term, Nil)
-          if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
-            list.head.tf += 1
-          else //first time of this term in the document 
-            invertedIndex.put(term, Posting(dataset.size, 1) :: list)
-        }
-        dataset += doc
-      }
-      null
+    override def apply[In <: IFeature](qs: List[In]): IIndex = {
+      new Index(new Tokenizer)
     }
-    
+
     override def getName(): String = {
       "GenericInvertedIndexer"
     }
   }
 
   @SerialVersionUID(1L)
-  case class GenericHistogramIndex[In <: IFeature, Index <: BasicIndex](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
+  case class GenericHistogramIndex[In <: IFeature, Index <: IIndex](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
     override def apply(in: List[In]): Index = {
       log("Apply Histogram Index to " + in.getClass().getCanonicalName())("INFO")
       indexer.apply(in).asInstanceOf[Index]
@@ -149,25 +154,49 @@ object GenericImpl {
     def index(featureList: Seq[SourceComponent[LuceneFeatureAdaptor]]): IndexStage[In, Index] = {
       new IndexStage[In, Index](this, featureList.toList.map(elem => elem.asInstanceOf[SourceComponent[In]]))
     }
- 
+
+  }
+
+  import edu.uwm.cs.mir.prototypes.aws.AWSS3Config
+  case class NaiveQueryResultAdaptor(result: Seq[Result]) extends IFeature {
+    override def getId[T]() = null.asInstanceOf[T]
+    override def getFeature[T]() = this.asInstanceOf[T]
+    override def getType[T]() = null.asInstanceOf[T]
+    override def getAWSS3Config() = null
+    override def setAWSS3Config(config: AWSS3Config) = {}
+    def printResult: String = {
+      var res: String = ""
+      result.map(elem => res = res + "docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
+      res
+    }
+  }
+
+  class Searcher(val index: Index, val tokenizer: Tokenizer) {
+    def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
+    def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
+    def searchOR(q: String, topk: Int) = {
+      val accums = new collection.mutable.HashMap[Int, Double] //Map(docId -> Score)
+      for (term <- tokenizer.tokenize(q))
+        for (posting <- index.invertedIndex.getOrElse(term, Nil))
+          accums.put(posting.docId, accums.getOrElse(posting.docId, 0D) + posting.tf * math.pow(idf(term), 2))
+      accums.map(d => Result(d._1, index.dataset(d._1), d._2 / docNorm(d._1))).toSeq.sortWith(_.score > _.score).take(topk)
+    }
   }
 
   @SerialVersionUID(1L)
-  case class GenericNaiveIndexQuery() extends GenericProjWithIndex[IFeature, LuceneQueryResultAdaptor, LuceneIndex] {
-    //TODO
-    def apply(in: IFeature): LuceneQueryResultAdaptor = {
-      val luceneQuery = new LuceneQuery()
-      luceneQuery.setIndex(this.index.get)
-      luceneQuery.apply(in).asInstanceOf[LuceneQueryResultAdaptor]
+  case class GenericNaiveIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
+    def apply(in: IFeature): NaiveQueryResultAdaptor = {
+      val searcher = new Searcher(this.index.get.asInstanceOf[Index], new Tokenizer)
+      new NaiveQueryResultAdaptor(searcher.searchOR(readLine(), numOfTopResult))
     }
 
     override def setIndex(index: IIndex): Unit = {
-      this.index = Some(index.asInstanceOf[LuceneIndex])
+      this.index = Some(index.asInstanceOf[IIndex])
     }
 
     override def setModel(model: IModel): Unit = {}
   }
-    
+
   @SerialVersionUID(1L)
   case class GenericLuceneQuery() extends GenericProjWithIndex[IFeature, LuceneQueryResultAdaptor, LuceneIndex] {
     def apply(in: IFeature): LuceneQueryResultAdaptor = {

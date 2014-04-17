@@ -35,11 +35,11 @@ object Compile {
     idx.index(featureList)
   }
   
-  def naiveIndex(idx: GenericHistogramIndex[SiftFeatureAdaptor, BasicIndex], featureSource: SourceComponent[SiftFeatureAdaptor]): HistogramIndexStage[SiftFeatureAdaptor, BasicIndex] = {
+  def naiveIndex(idx: GenericHistogramIndex[SiftFeatureAdaptor, IIndex], featureSource: SourceComponent[SiftFeatureAdaptor]): HistogramIndexStage[SiftFeatureAdaptor, IIndex] = {
     idx.index(featureSource)
   }
 
-  def invertedIndexQuery(query: GenericNaiveIndexQuery, idx: HistogramIndexStage[SiftFeatureAdaptor, BasicIndex], qImg: SourceComponent[Image]) = {
+  def invertedIndexQuery(query: GenericNaiveIndexQuery, idx: HistogramIndexStage[SiftFeatureAdaptor, IIndex], qImg: SourceComponent[Image]) = {
     qImg.connect(f_sift).connect(query, idx)
   }
   

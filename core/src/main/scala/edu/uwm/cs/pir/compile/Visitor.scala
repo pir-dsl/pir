@@ -22,10 +22,10 @@ class Visitor {
       def visit[In <: IFeature, Model <: IModel] (train: TrainStage[In, Model]) {}
       def visit[In <: IFeature, In2 <:IFeature, Model <: IModel] (train: TrainStage2[In, In2, Model]) {}
       def visit[In <: IFeature, Index <: IIndex] (index: IndexStage[In, Index]) {}
-      def visit[In <: IFeature, Index <: BasicIndex] (index: HistogramIndexStage[In, Index]) {}
+      def visit[In <: IFeature, Index <: IIndex] (index: HistogramIndexStage[In, Index]) {}
       def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose] 
       (query: LuceneQueryStage[In, Out, Index, Compose]) {}
-      def visit[In <: IFeature, Out <: IFeature, Index <: BasicIndex] 
+      def visit[In <: IFeature, Out <: IFeature, Index <: IIndex] 
       (query: NaiveIndexQueryStage[In, Out, Index]) {}     
 }
 
