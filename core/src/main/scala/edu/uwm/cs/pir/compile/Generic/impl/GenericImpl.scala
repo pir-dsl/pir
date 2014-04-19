@@ -91,7 +91,8 @@ object GenericImpl {
     }
   }
 
-  class Tokenizer(val p: String = "[^a-z0-9]+") {
+  //class Tokenizer(val p: String = "[^a-z0-9]+") {
+  class Tokenizer(val p: String = " ") {
     //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
   }
@@ -186,6 +187,7 @@ object GenericImpl {
   @SerialVersionUID(1L)
   case class GenericNaiveIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
     def apply(in: IFeature): NaiveQueryResultAdaptor = {
+      //TODO: Need to add code to replace readLne() to in and in should be converted to a String
       val searcher = new Searcher(this.index.get.asInstanceOf[Index], new Tokenizer)
       new NaiveQueryResultAdaptor(searcher.searchOR(readLine(), numOfTopResult))
     }
@@ -282,6 +284,35 @@ object GenericImpl {
       log("Apply EdgeHistogram to " + in.getId())("INFO")
       if (awsS3Config.isIs_s3_storage()) edgeHistogram.setAWSS3Config(awsS3Config)
       edgeHistogram.apply(in).asInstanceOf[LireFeatureAdaptor]
+    }
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
+  }
+
+  case class HistogramString(val histogramString : String) extends IFeature {
+	override def getId[T]() = null.asInstanceOf[T]
+    override def getFeature[String]() = {histogramString.asInstanceOf[String]}
+    override def getType[T]() = null.asInstanceOf[T]
+    override def getAWSS3Config() = null
+    override def setAWSS3Config(config: AWSS3Config) = {}
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericHistogramString() extends GenericProj[Histogram, HistogramString] {
+    override def apply(in: Histogram): HistogramString = {
+      log("Convert Histogram to String: " + in.getId())("INFO")
+      var result: String = ""
+      val hist = in.getFeature()
+      val intHist = hist.map(elem => elem.toInt)
+
+      for (i <- 1 to intHist.size) {
+        val visualWordIndex = intHist(i)
+        for (j <- 1 to visualWordIndex) {
+          result = result + 'v' + i + ' '
+        }
+      }
+      new HistogramString(result)
     }
 
     override def setIndex(index: IIndex): Unit = {}

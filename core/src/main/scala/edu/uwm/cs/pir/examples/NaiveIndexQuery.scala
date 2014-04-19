@@ -81,9 +81,11 @@ object NaiveIndexQuery {
     val img = load[Image]((if ("1" == dataset) SAMPLE_IMAGES_ROOT else WIKIPEDIA_IMAGES_ROOT) + "training", InputType.IMAGE)
     val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
 
-    val idx = naiveIndex(f_histogramIdx, img.connect(f_sift))
+    val siftImg = img.connect(f_sift)
+    val kModel = train(f_kMeansTrain, siftImg)
+    val idx = naiveIndex(f_histogramIdx, siftImg.connect(f_cluster, kModel).connect(f_histogramString))
 
-    invertedIndexQuery(f_naiveIndexQuery, idx, qImg)
+    invertedIndexQuery(f_naiveIndexQuery, idx, qImg.connect(f_sift).connect(f_cluster, kModel).connect(f_histogramString))
   }
 
 }

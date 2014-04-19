@@ -78,7 +78,11 @@ object Function {
   
   def f_histogramIdx() = {
     val indexer = new GenericInvertedIndexer()
-    new GenericHistogramIndex[SiftFeatureAdaptor, IIndex](indexer)
+    new GenericHistogramIndex[HistogramString, IIndex](indexer)
+  }
+  
+  def f_histogramString() = {
+    new GenericHistogramString()
   }
 
 }
