@@ -170,7 +170,7 @@ object GenericImpl {
     override def setAWSS3Config(config: AWSS3Config) = {}
     def printResult: String = {
       var res: String = "result size = " + result.size + "\n"
-      result.map(elem => res = res + "docStringId:" + elem.docStringId + "docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
+      result.map(elem => res = res + "docStringId:" + elem.docStringId + ",docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
       res
     }
     
