@@ -98,8 +98,8 @@ object GenericImpl {
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
   }
 
-  case class Posting(docId: Int, var tf: Int)
-  case class Result(docId: Int, doc: String, score: Double)
+  case class Posting(docId: Int, docStringId: String, var tf: Int)
+  case class Result(docId: Int, docStringId: String, doc: String, score: Double)
 
   class Index(val tokenizer: Tokenizer) extends IIndex {
 
@@ -108,13 +108,13 @@ object GenericImpl {
     val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
     val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
     def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
-    def index(doc: String) { //dataset.size = current doc Id
+    def index(docStringId: String, doc: String) { //dataset.size = current doc Id
       for (term <- tokenizer.tokenize(doc)) {
         val list = invertedIndex.getOrElse(term, Nil)
         if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
           list.head.tf += 1
         else //first time of this term in the document 
-          invertedIndex.put(term, Posting(dataset.size, 1) :: list)
+          invertedIndex.put(term, Posting(dataset.size, docStringId, 1) :: list)
       }
       dataset += doc
     }
@@ -126,7 +126,7 @@ object GenericImpl {
     //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
     override def apply[In <: IFeature](qs: List[In]): IIndex = {
       val index = new Index(new Tokenizer)
-      qs.foreach(iFeature => index.index(iFeature.getFeature().asInstanceOf[String]))
+      qs.foreach(iFeature => index.index(iFeature.getId.toString, iFeature.getFeature().asInstanceOf[String]))
       index
     }
 
@@ -170,7 +170,7 @@ object GenericImpl {
     override def setAWSS3Config(config: AWSS3Config) = {}
     def printResult: String = {
       var res: String = "result size = " + result.size + "\n"
-      result.map(elem => res = res + "docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
+      result.map(elem => res = res + "docStringId:" + elem.docStringId + "docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
       res
     }
     
@@ -180,14 +180,15 @@ object GenericImpl {
   }
 
   class Searcher(val index: Index, val tokenizer: Tokenizer) {
+    class SearchResult (val docStringId:String, val score: Double)
     def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
     def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
     def searchOR(q: String, topk: Int) = {
-      val accums = new collection.mutable.HashMap[Int, Double] //Map(docId -> Score)
+      val accums = new collection.mutable.HashMap[Int, SearchResult] //Map(docId -> Score)
       for (term <- tokenizer.tokenize(q))
         for (posting <- index.invertedIndex.getOrElse(term, Nil))
-          accums.put(posting.docId, accums.getOrElse(posting.docId, 0D) + posting.tf * math.pow(idf(term), 2))
-      accums.map(d => Result(d._1, index.dataset(d._1), d._2 / docNorm(d._1))).toSeq.sortWith(_.score > _.score).take(topk)
+          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
+      accums.map(d => Result(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toSeq.sortWith(_.score > _.score).take(topk)
     }
   }
 
