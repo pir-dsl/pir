@@ -125,7 +125,9 @@ object GenericImpl {
 
     //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
     override def apply[In <: IFeature](qs: List[In]): IIndex = {
-      new Index(new Tokenizer)
+      val index = new Index(new Tokenizer)
+      qs.foreach(iFeature => index.index(iFeature.getFeature().asInstanceOf[HistogramString].toString))
+      index
     }
 
     override def getName(): String = {
