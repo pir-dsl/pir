@@ -310,7 +310,7 @@ object GenericImpl {
       val hist = in.getFeature()
       val intHist = hist.map(elem => elem.toInt)
 
-      for (i <- 1 to intHist.size) {
+      for (i <- 1 to intHist.size - 1) {
         val visualWordIndex = intHist(i)
         for (j <- 1 to visualWordIndex) {
           result = result + 'v' + i + ' '
