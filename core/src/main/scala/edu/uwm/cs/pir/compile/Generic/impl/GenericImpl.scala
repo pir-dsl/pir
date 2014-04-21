@@ -19,6 +19,7 @@ import edu.uwm.cs.mir.prototypes.feature.wikipedia._
 import edu.uwm.cs.mir.prototypes.feature.FilenameFeature._
 import edu.uwm.cs.mir.prototypes.feature.AWSS3Source
 import edu.uwm.cs.pir.misc.Constants._
+import scala.reflect.ClassTag
 import org.apache.commons.io.FileUtils
 import net.semanticmetadata.lire.imageanalysis.LireFeature
 
@@ -133,14 +134,14 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericHistogramIndex[In <: IFeature, Index <: IIndex](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
+  case class GenericHistogramIndex[In <: IFeature, Index <: IIndex : ClassTag](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
     override def apply(in: List[In]): Index = {
       log("Apply Histogram Index to " + in.getClass().getCanonicalName())("INFO")
       indexer.apply(in).asInstanceOf[Index]
     }
 
-    override def index(histogramList: SourceComponent[In]): HistogramIndexStage[In, Index] = {
-      new HistogramIndexStage[In, Index](this, histogramList)
+    override def index(histogramList: SourceComponent[In]) (implicit c: ClassTag[Index]): HistogramIndexStage[In, Index] = {
+      new HistogramIndexStage[In, Index](this, histogramList)(c)
     }
 
   }
@@ -170,6 +171,10 @@ object GenericImpl {
       result.map(elem => res = res + "docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
       res
     }
+    
+    def top (another : NaiveQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT) : NaiveQueryResultAdaptor = {
+      new NaiveQueryResultAdaptor ((result.union (another.result)).take(numOfTopResult))
+    }
   }
 
   class Searcher(val index: Index, val tokenizer: Tokenizer) {
@@ -187,9 +192,8 @@ object GenericImpl {
   @SerialVersionUID(1L)
   case class GenericNaiveIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
     def apply(in: IFeature): NaiveQueryResultAdaptor = {
-      //TODO: Need to add code to replace readLne() to in and in should be converted to a String
       val searcher = new Searcher(this.index.get.asInstanceOf[Index], new Tokenizer)
-      new NaiveQueryResultAdaptor(searcher.searchOR(readLine(), numOfTopResult))
+      new NaiveQueryResultAdaptor(searcher.searchOR(in.asInstanceOf[HistogramString].getFeature.toString, numOfTopResult))
     }
 
     override def setIndex(index: IIndex): Unit = {
@@ -290,10 +294,10 @@ object GenericImpl {
     override def setModel(model: IModel): Unit = {}
   }
 
-  case class HistogramString(val histogramString : String) extends IFeature {
-	override def getId[T]() = null.asInstanceOf[T]
+  case class HistogramString(val id: String, val theType: String, val histogramString : String) extends IFeature {
+	override def getId[String]() = {id.asInstanceOf[String]}
     override def getFeature[String]() = {histogramString.asInstanceOf[String]}
-    override def getType[T]() = null.asInstanceOf[T]
+    override def getType[String]() = {theType.asInstanceOf[String]}
     override def getAWSS3Config() = null
     override def setAWSS3Config(config: AWSS3Config) = {}
   }
@@ -312,7 +316,7 @@ object GenericImpl {
           result = result + 'v' + i + ' '
         }
       }
-      new HistogramString(result)
+      new HistogramString(in.getId, in.getType[String], result)
     }
 
     override def setIndex(index: IIndex): Unit = {}

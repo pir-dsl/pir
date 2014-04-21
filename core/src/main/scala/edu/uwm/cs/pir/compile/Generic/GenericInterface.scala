@@ -10,6 +10,8 @@ import edu.uwm.cs.pir.graph._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Source._
 
+import scala.reflect.ClassTag
+
 object GenericInterface {
 
   trait GenericLoad[Out <: IFeature] extends Serializable {
@@ -36,8 +38,8 @@ object GenericInterface {
   
   trait GenericBasicIndex[In <: IFeature, Index <: IIndex] extends Serializable {
     def apply(in: List[In]): Index
-    def index(source: SourceComponent[In]): HistogramIndexStage[In, Index] = {
-      new HistogramIndexStage[In, Index](this, source)
+    def index(source: SourceComponent[In]) (implicit c: ClassTag[Index]) : HistogramIndexStage[In, Index] = {
+      new HistogramIndexStage[In, Index] (this, source) (c)
     }
   }
 

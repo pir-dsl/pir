@@ -224,10 +224,9 @@ object Strategy {
       if (index.cacheIndex == None) {
         time(indexFunc(index, this))("" + index.indexer)
       }
-      index.cacheIndex
     }
 
-    override def visit[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index]) = {
+    override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
         time(basicIndexFunc(index, this))("" + index.indexer)
       }
@@ -265,8 +264,7 @@ object Strategy {
     index.setIndex(Some(index.indexer.apply(fs.asInstanceOf[List[List[In]]])))
   }
 
-  case class SequentialStrategy() extends RunStrategy {
-  }
+  case class SequentialStrategy() extends RunStrategy {}
 
   case class ParallelStrategy(val maxNumberOfThreads: Int) extends RunStrategy {
 
@@ -325,6 +323,49 @@ object Strategy {
   }
 
   case class SparkStrategy() extends RunStrategy {
+
+    override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
+      if (index.cacheIndex == None) {
+        time(basicSparkIndexFunc(index, this))("" + index.indexer)
+      }
+    }
+
+    def basicSparkIndexFunc[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
+      var fs: List[IFeature] = Nil
+
+      index.source.accept(strategy)
+
+      fs = index.source.cache match {
+        case Some(d) => d.toArray.toList
+        case None => null
+      }
+
+      val indexer = index.indexer
+      indexer.apply(fs.asInstanceOf[List[In]])
+
+      val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
+      val resultIndex = partitionedSource.map { elem => indexer.apply(elem.asInstanceOf[List[In]]) }.persist
+
+      index.setRDDIndex(Some(resultIndex))
+    }
+
+    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
+      query.source.accept(this)
+      query.index.accept(this)
+
+      //val left = (query.index.asInstanceOf[SourcePipe[In, IFeature]]).left
+      //val right = (query.index.asInstanceOf[SourcePipe[IFeature, Out]]).right
+      val queryFeature = query.source.cache.get.first
+      //val queryFeature = right.apply(left.asInstanceOf[SourcePipe[In, IFeature]].right.apply(elem))
+
+      val finalResult = query.index.cacheRDDIndex.get.map(index => {
+        query.query.setIndex(index)
+        val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
+        log(queryResult.printResult)
+        queryResult
+      }).persist.reduce((elem1, elem2) => elem1.top(elem2))
+      log(finalResult.printResult)
+    }
 
     override def visit[In <: IFeature, Out <: IFeature: ClassTag](q: LoadStage[In, Out]) = {
       if (q.cache == None) {
