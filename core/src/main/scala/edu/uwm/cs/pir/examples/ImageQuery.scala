@@ -50,7 +50,7 @@ object ImageQuery {
         usage
       }
       sparkContext.stop
-      log("Imagequery mission complete")("INFO")
+      log("ImageQuery mission complete")("INFO")
     }
   }
 

@@ -23,7 +23,6 @@ object NaiveIndexQuery {
     if (args.length != 2) {
       usage
     } else {
-      
       sparkContext = initSparkConf
       awsS3Config = initAWSS3Config
       
@@ -40,14 +39,14 @@ object NaiveIndexQuery {
         }
       } else if ("sp" == env) {
         time(sparkNaiveIndexQuery(dataset)) {
-          "sparkImageQuery"
+          "sparkNaiveIndexQuery"
         }
-        log("Complete sparkImageQuery")("INFO")
+        log("Complete sparkNaiveIndexQuery")("INFO")
       } else {
         usage
       }
       sparkContext.stop
-      log("Imagequery mission complete")("INFO")
+      log("NaiveIndexQuery mission complete")("INFO")
     }
   }
 
