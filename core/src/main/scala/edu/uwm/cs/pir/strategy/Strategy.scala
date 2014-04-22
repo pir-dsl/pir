@@ -406,7 +406,7 @@ object Strategy {
     if (rdd == null || rdd == Nil) {
       null
     } else {
-      rdd.map { elem => { /*log("the elem = " + elem); */ proj.apply(elem) } }.persist
+      rdd.map { elem => { log("the elem = " + elem); proj.apply(elem) } }.persist
     }
   }
 
