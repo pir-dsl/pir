@@ -121,7 +121,7 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericInvertedIndexer[In <: IFeature] extends BasicIndexer {
+  case class GenericInvertedIndexer[In <: IFeature] () extends BasicIndexer {
 
     //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
     override def apply[In <: IFeature](qs: List[In]): IIndex = {
