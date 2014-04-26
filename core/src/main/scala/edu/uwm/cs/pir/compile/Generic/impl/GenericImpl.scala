@@ -100,9 +100,11 @@ object GenericImpl {
 
   case class Posting(docId: Int, docStringId: String, var tf: Int)
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
-    def compare (that: InvertedIndexSearchResult) = {
-       (this.score - that.score).toInt
-    } 
+    def compare(that: InvertedIndexSearchResult) = {
+      if (this.score > that.score) 1
+      else if (this.score < that.score) -1
+      else 0
+    }
   }
 
   class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
