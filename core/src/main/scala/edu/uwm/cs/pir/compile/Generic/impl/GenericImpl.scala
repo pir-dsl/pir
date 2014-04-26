@@ -99,9 +99,13 @@ object GenericImpl {
   }
 
   case class Posting(docId: Int, docStringId: String, var tf: Int)
-  case class Result(docId: Int, docStringId: String, doc: String, score: Double)
+  case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
+    def compare (that: InvertedIndexSearchResult) = {
+       (this.score - that.score).toInt
+    } 
+  }
 
-  class Index(val tokenizer: Tokenizer) extends IIndex {
+  class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
 
     override def getLocation(): String = "";
 
@@ -121,11 +125,11 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericInvertedIndexer[In <: IFeature] () extends BasicIndexer {
+  case class GenericInvertedIndexer[In <: IFeature]() extends BasicIndexer {
 
     //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
     override def apply[In <: IFeature](qs: List[In]): IIndex = {
-      val index = new Index(new Tokenizer)
+      val index = new InvertedIndex(new Tokenizer)
       qs.foreach(iFeature => index.index(iFeature.getId.toString, iFeature.getFeature().asInstanceOf[String]))
       index
     }
@@ -136,13 +140,13 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericHistogramIndex[In <: IFeature, Index <: IIndex : ClassTag](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
+  case class GenericHistogramIndex[In <: IFeature, Index <: IIndex: ClassTag](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
     override def apply(in: List[In]): Index = {
       log("Apply Histogram Index to " + in.getClass().getCanonicalName())("INFO")
       indexer.apply(in).asInstanceOf[Index]
     }
 
-    override def index(histogramList: SourceComponent[In]) (implicit c: ClassTag[Index]): HistogramIndexStage[In, Index] = {
+    override def index(histogramList: SourceComponent[In])(implicit c: ClassTag[Index]): HistogramIndexStage[In, Index] = {
       new HistogramIndexStage[In, Index](this, histogramList)(c)
     }
 
@@ -162,7 +166,7 @@ object GenericImpl {
   }
 
   import edu.uwm.cs.mir.prototypes.aws.AWSS3Config
-  case class NaiveQueryResultAdaptor(result: Seq[Result]) extends IFeature {
+  case class NaiveQueryResultAdaptor(result: Seq[InvertedIndexSearchResult]) extends IFeature {
     override def getId[T]() = null.asInstanceOf[T]
     override def getFeature[T]() = this.asInstanceOf[T]
     override def getType[T]() = null.asInstanceOf[T]
@@ -173,29 +177,31 @@ object GenericImpl {
       result.map(elem => res = res + "docStringId:" + elem.docStringId + ",docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
       res
     }
-    
-    def top (another : NaiveQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT) : NaiveQueryResultAdaptor = {
-      new NaiveQueryResultAdaptor ((result.union (another.result)).take(numOfTopResult))
+
+    def top(another: NaiveQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT): NaiveQueryResultAdaptor = {
+      new NaiveQueryResultAdaptor((result.union(another.result)).take(numOfTopResult))
     }
   }
 
-  class Searcher(val index: Index, val tokenizer: Tokenizer) {
-    class SearchResult (val docStringId:String, val score: Double)
+  class InvertedIndexSearcher(val index: InvertedIndex, val tokenizer: Tokenizer) {
+    class SearchResult(val docStringId: String, val score: Double)
     def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
     def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
     def searchOR(q: String, topk: Int) = {
       val accums = new collection.mutable.HashMap[Int, SearchResult] //Map(docId -> Score)
-      for (term <- tokenizer.tokenize(q))
-        for (posting <- index.invertedIndex.getOrElse(term, Nil))
+      for (term <- tokenizer.tokenize(q)) {
+        for (posting <- index.invertedIndex.getOrElse(term, Nil)) {
           accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
-      accums.map(d => Result(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toSeq.sortWith(_.score > _.score).take(topk)
+        }
+      }
+      accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toSeq.sortWith(_.score > _.score).take(topk)
     }
   }
 
   @SerialVersionUID(1L)
   case class GenericNaiveIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
     def apply(in: IFeature): NaiveQueryResultAdaptor = {
-      val searcher = new Searcher(this.index.get.asInstanceOf[Index], new Tokenizer)
+      val searcher = new InvertedIndexSearcher(this.index.get.asInstanceOf[InvertedIndex], new Tokenizer)
       new NaiveQueryResultAdaptor(searcher.searchOR(in.asInstanceOf[HistogramString].getFeature.toString, numOfTopResult))
     }
 
@@ -297,10 +303,10 @@ object GenericImpl {
     override def setModel(model: IModel): Unit = {}
   }
 
-  case class HistogramString(val id: String, val theType: String, val histogramString : String) extends IFeature {
-	override def getId[String]() = {id.asInstanceOf[String]}
-    override def getFeature[String]() = {histogramString.asInstanceOf[String]}
-    override def getType[String]() = {theType.asInstanceOf[String]}
+  case class HistogramString(val id: String, val theType: String, val histogramString: String) extends IFeature {
+    override def getId[String]() = { id.asInstanceOf[String] }
+    override def getFeature[String]() = { histogramString.asInstanceOf[String] }
+    override def getType[String]() = { theType.asInstanceOf[String] }
     override def getAWSS3Config() = null
     override def setAWSS3Config(config: AWSS3Config) = {}
   }
