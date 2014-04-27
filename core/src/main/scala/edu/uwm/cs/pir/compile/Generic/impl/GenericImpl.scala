@@ -210,7 +210,8 @@ object GenericImpl {
       val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList
       try {
         //resultList.sorted.take(topk)
-        resultList.sortWith(_>_).take(topk)
+        //resultList.sortWith(_>_).take(topk)
+        resultList.take(topk)
       } catch {
         case e: Exception =>
           resultList.foreach(elem => elem.printResult)
