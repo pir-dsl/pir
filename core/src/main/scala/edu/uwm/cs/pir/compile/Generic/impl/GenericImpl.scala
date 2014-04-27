@@ -101,20 +101,13 @@ object GenericImpl {
   case class Posting(docId: Int, docStringId: String, var tf: Int)
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
     def compare(that: InvertedIndexSearchResult): Int = {
-      //When score is NaN, 'Comparison method violates its general contract!' error may arise in comparison
-      if ((this.score.isNaN()) && (that.score.isNaN())) 0
-      else if (this.score.isNaN()) -1 
-      else if (that.score.isNaN()) 1
-      
-      if (that == null) 1
-      
       if (this.score > that.score) 1
       else if (this.score < that.score) -1
       else 0
     }
 
     def printResult: Unit = {
-      print(docId + "," + docStringId + "," + doc + "," + score + "\n")
+      print(docId + ", "  + score + "\n")
     }
   }
 
@@ -207,11 +200,10 @@ object GenericImpl {
           accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
         }
       }
-      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList
+      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
       try {
         //resultList.sorted.take(topk)
-        //resultList.sortWith(_>_).take(topk)
-        resultList.take(topk)
+        resultList.sortWith(_>_).take(topk)
       } catch {
         case e: Exception =>
           resultList.foreach(elem => elem.printResult)
