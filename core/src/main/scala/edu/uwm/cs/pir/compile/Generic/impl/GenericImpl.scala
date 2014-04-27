@@ -101,6 +101,7 @@ object GenericImpl {
   case class Posting(docId: Int, docStringId: String, var tf: Int)
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
     def compare(that: InvertedIndexSearchResult): Int = {
+      //When score is NaN, 'Comparison method violates its general contract!' error may arise in comparison
       if ((this.score.isNaN()) && (that.score.isNaN())) 0
       else if (this.score.isNaN()) -1 
       else if (that.score.isNaN()) 1
