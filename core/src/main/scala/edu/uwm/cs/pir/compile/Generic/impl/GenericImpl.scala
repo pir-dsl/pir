@@ -105,6 +105,10 @@ object GenericImpl {
       else if (this.score < that.score) -1
       else 0
     }
+    
+    def printResult : Unit = {
+      print (docId + "," + docStringId + "," + doc + "," + score + "\n")
+    }
   }
 
   class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
@@ -197,7 +201,12 @@ object GenericImpl {
         }
       }
       val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList
-      resultList.sorted.take(topk)
+      try {
+        resultList.sorted.take(topk)
+      } catch {
+        case e: Exception => resultList.foreach(elem => elem.printResult)
+        throw e
+      }
     }
   }
 
