@@ -200,7 +200,7 @@ object GenericImpl {
       }
       //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
       val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
-        resultList.sorted.take(topk)   
+        resultList.sortWith(_>_).take(topk)   
     }
   }
 
