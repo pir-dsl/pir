@@ -77,7 +77,7 @@ object NaiveIndexQuery {
   }
 
   def getQ(dataset: String) = {
-    val img = load[Image]((if ("1" == dataset) SAMPLE_IMAGES_ROOT else WIKIPEDIA_IMAGES_ROOT) + "training" + "/music", InputType.IMAGE)
+    val img = load[Image]((if ("1" == dataset) SAMPLE_IMAGES_ROOT else WIKIPEDIA_IMAGES_ROOT) + "training" + "/biology", InputType.IMAGE)
     val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.IMAGE)
 
     val siftImg = img.connect(f_sift)
