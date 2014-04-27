@@ -27,7 +27,7 @@ class PIRGenericSuite extends FunSuite {
         InvertedIndexSearchResult(2, "docId2", "result2", 3.5),
     	InvertedIndexSearchResult(3, "docId3", "result3", 4.6),
     	InvertedIndexSearchResult(4, "docId4", "result4", 7.8), 
-    	InvertedIndexSearchResult(5, "docId5", "result5", Double.NaN)).toSeq.sorted
+    	InvertedIndexSearchResult(5, "docId5", "result5", Double.NaN)).sortWith(_>_)
     array.map(elem => println(elem))
   }
 

@@ -105,8 +105,11 @@ object GenericImpl {
       if ((this.score.isNaN()) && (that.score.isNaN())) 0
       else if (this.score.isNaN()) -1 
       else if (that.score.isNaN()) 1
-      if (this.score < that.score) 1
-      else if (this.score > that.score) -1
+      
+      if (that == null) 1
+      
+      if (this.score > that.score) 1
+      else if (this.score < that.score) -1
       else 0
     }
 
