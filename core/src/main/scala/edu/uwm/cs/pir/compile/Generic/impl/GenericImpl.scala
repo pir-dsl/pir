@@ -100,14 +100,17 @@ object GenericImpl {
 
   case class Posting(docId: Int, docStringId: String, var tf: Int)
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
-    def compare(that: InvertedIndexSearchResult) = {
-      if (this.score > that.score) 1
-      else if (this.score < that.score) -1
+    def compare(that: InvertedIndexSearchResult): Int = {
+      if ((this.score.isNaN()) && (that.score.isNaN())) 0
+      else if (this.score.isNaN()) -1 
+      else if (that.score.isNaN()) 1
+      if (this.score < that.score) 1
+      else if (this.score > that.score) -1
       else 0
     }
-    
-    def printResult : Unit = {
-      print (docId + "," + docStringId + "," + doc + "," + score + "\n")
+
+    def printResult: Unit = {
+      print(docId + "," + docStringId + "," + doc + "," + score + "\n")
     }
   }
 
@@ -204,8 +207,9 @@ object GenericImpl {
       try {
         resultList.sorted.take(topk)
       } catch {
-        case e: Exception => resultList.foreach(elem => elem.printResult)
-        throw e
+        case e: Exception =>
+          resultList.foreach(elem => elem.printResult)
+          throw e
       }
     }
   }
