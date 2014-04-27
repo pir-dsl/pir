@@ -5,6 +5,7 @@ import edu.uwm.cs.pir.misc.InputType
 import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.compile.Scope._
+import edu.uwm.cs.pir.compile.Function._
 
 import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.mir.prototypes.feature._
@@ -33,16 +34,20 @@ object Compile {
   def index(idx: GenericLuceneIndex[Image, IIndex], featureList: SourceComponent[LuceneFeatureAdaptor]*): IndexStage[Image, IIndex] = {
     idx.index(featureList)
   }
+  
+  def invertedIndex(idx: GenericHistogramIndex[HistogramString, IIndex], featureSource: SourceComponent[HistogramString]): HistogramIndexStage[HistogramString, IIndex] = {
+    idx.index(featureSource)
+  }
 
+  def invertedIndexQuery(query: GenericInvertedIndexQuery, idx: HistogramIndexStage[HistogramString, IIndex], qFeature: SourceComponent[HistogramString]) = {
+    qFeature.connect(query, idx)
+  }
+  
   def query(query: GenericLuceneQuery, idx: IndexStage[Image, IIndex], qImg: SourceComponent[Image], ratio: Double = 0.5) = {
     val weights: List[Double] = List(ratio, 1 - ratio)
     val compose = new GenericLuceneCompose[Image, LuceneWeightedQueryResult](weights)
     qImg.connect(query, idx, compose)
   }
-
-//  def train(trainer: GenericLDATrain, txt: SourceComponent[Text]): TrainStage[Text, LdaModel] = {
-//    new TrainStage[Text, LdaModel](trainer, txt)
-//  }
   
   def train(trainer: GenericLDATrain, wikiText: SourceComponent[WikiPediaTextAdaptor]): TrainStage[WikiPediaTextAdaptor, LdaModel] = {
     new TrainStage[WikiPediaTextAdaptor, LdaModel](trainer, wikiText)

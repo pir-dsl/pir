@@ -10,6 +10,8 @@ import edu.uwm.cs.pir.graph._
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Source._
 
+import scala.reflect.ClassTag
+
 object GenericInterface {
 
   trait GenericLoad[Out <: IFeature] extends Serializable {
@@ -18,10 +20,26 @@ object GenericInterface {
     def apply(url: String): Option[Out]
   }
 
+  trait BasicIndex extends Serializable {
+	  
+  }
+  
+  trait BasicIndexer {
+	def apply[In <: IFeature](qs : List[In]) : IIndex
+	def getName() : String
+  }
+  
   trait GenericIndex[In <: IFeature, Index <: IIndex] extends Serializable {
     def apply(in: List[List[In]]): Index
     def index(source: List[SourceComponent[In]]): IndexStage[In, Index] = {
       new IndexStage[In, Index](this, source)
+    }
+  }
+  
+  trait GenericBasicIndex[In <: IFeature, Index <: IIndex] extends Serializable {
+    def apply(in: List[In]): Index
+    def index(source: SourceComponent[In]) (implicit c: ClassTag[Index]) : HistogramIndexStage[In, Index] = {
+      new HistogramIndexStage[In, Index] (this, source) (c)
     }
   }
 
@@ -32,6 +50,11 @@ object GenericInterface {
   }
 
   trait GenericProjWithIndex[In <: IFeature, Out <: IFeature, Index <: IIndex] extends GenericProj[In, Out] with Serializable {
+    var index: Option[Index] = None
+    def apply(in: In): Out
+  }
+  
+  trait GenericProjWithBasicIndex[In <: IFeature, Out <: IFeature, Index <: IIndex] extends GenericProj[In, Out] with Serializable {
     var index: Option[Index] = None
     def apply(in: In): Out
   }

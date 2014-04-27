@@ -52,19 +52,27 @@ object Source {
     def sort(order: String) (implicit c: ClassTag[Out]) : SourceComponent[Out] = {
       new SortPipe[Out](this, order)(c)
     }
-
+    
     def connect[NewOut <: IFeature: ClassTag](stage: ProjComponent[Out, NewOut]): SourceComponent[NewOut] = {
       new SourcePipe[Out, NewOut](this, stage)
     }
 
-    //    def connect[NewOut <: IFeature](stage: ProjStage[Out, NewOut]): SourceComponent[NewOut] = {
-    //      new SourcePipe[Out, NewOut](this, stage)
-    //    }
+    def connect[NewOut <: IFeature: ClassTag, Model <: IModel](projStage: GenericProjWithModel[Out, NewOut, Model], train: TrainComponent[Model]): SourceComponent[NewOut] = {
+      new SourcePipe[Out, NewOut](this, new ProjWithModelStage(projStage, train))
+    }
 
     def connect[NewOut <: IFeature, Indexer <: IIndexer, Index <: IIndex, Compose <: ICompose](query: GenericLuceneQuery, index: IndexStage[Out, Index], compose: GenericCompose[Out, Compose]) = {
       new LuceneQueryStage[Out, NewOut, Index, Compose](query.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]],
         this, index, compose)
     }
+    
+    def connect[NewOut <: IFeature, Index <: IIndex](query: GenericInvertedIndexQuery, index: HistogramIndexStage[NewOut, Index]) = {
+      new InvertedIndexQueryStage[Out, NewOut, Index](query.asInstanceOf[GenericProjWithBasicIndex[Out, NewOut, Index]], this, index)
+    }
+    
+    /*def connect[NewOut <: IFeature, Index <: IIndex](pair: (GenericProjWithIndex[Out, NewOut, Index], HistogramIndexStage[NewOut, Index])) = {
+      new InvertedIndexQueryStage[Out, NewOut, Index](pair._1.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]], this, pair._2)
+    }*/
 
     //    def connect[NewOut <: IFeature, Model <: IModel] (stage: ProjWithModelStage[Out, NewOut, Model]): SourceComponent[NewOut] = {
     //      new SourcePipe[Out, NewOut](this, stage)

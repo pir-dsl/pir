@@ -19,6 +19,7 @@ import edu.uwm.cs.mir.prototypes.feature.wikipedia._
 import edu.uwm.cs.mir.prototypes.feature.FilenameFeature._
 import edu.uwm.cs.mir.prototypes.feature.AWSS3Source
 import edu.uwm.cs.pir.misc.Constants._
+import scala.reflect.ClassTag
 import org.apache.commons.io.FileUtils
 import net.semanticmetadata.lire.imageanalysis.LireFeature
 
@@ -91,6 +92,70 @@ object GenericImpl {
     }
   }
 
+  //class Tokenizer(val p: String = "[^a-z0-9]+") {
+  class Tokenizer(val p: String = " ") {
+    //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
+    def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
+  }
+
+  case class Posting(docId: Int, docStringId: String, var tf: Int)
+  case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
+    def compare(that: InvertedIndexSearchResult): Int = {
+      if (this.score > that.score) 1
+      else if (this.score < that.score) -1
+      else 0
+    }
+
+    def printResult = print(docId + ", "  + score + "\n")
+  }
+
+  class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
+
+    override def getLocation(): String = "";
+
+    val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
+    val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
+    def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
+    def index(docStringId: String, doc: String) { //dataset.size = current doc Id
+      for (term <- tokenizer.tokenize(doc)) {
+        val list = invertedIndex.getOrElse(term, Nil)
+        if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
+          list.head.tf += 1
+        else //first time of this term in the document 
+          invertedIndex.put(term, Posting(dataset.size, docStringId, 1) :: list)
+      }
+      dataset += doc
+    }
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericInvertedIndexer[In <: IFeature]() extends BasicIndexer {
+
+    //Input is a list of Histogram, each histogram is from one image and is a of int[256] type.
+    override def apply[In <: IFeature](qs: List[In]): IIndex = {
+      val index = new InvertedIndex(new Tokenizer)
+      qs.foreach(iFeature => index.index(iFeature.getId.toString, iFeature.getFeature().asInstanceOf[String]))
+      index
+    }
+
+    override def getName(): String = {
+      "GenericInvertedIndexer"
+    }
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericHistogramIndex[In <: IFeature, Index <: IIndex: ClassTag](val indexer: BasicIndexer) extends GenericBasicIndex[In, Index] {
+    override def apply(in: List[In]): Index = {
+      log("Apply Histogram Index to " + in.getClass().getCanonicalName())("INFO")
+      indexer.apply(in).asInstanceOf[Index]
+    }
+
+    override def index(histogramList: SourceComponent[In])(implicit c: ClassTag[Index]): HistogramIndexStage[In, Index] = {
+      new HistogramIndexStage[In, Index](this, histogramList)(c)
+    }
+
+  }
+
   @SerialVersionUID(1L)
   case class GenericLuceneIndex[In <: IFeature, Index <: IIndex](val indexer: IIndexer) extends GenericIndex[In, Index] {
     def apply(in: List[List[In]]): Index = {
@@ -102,6 +167,55 @@ object GenericImpl {
       new IndexStage[In, Index](this, featureList.toList.map(elem => elem.asInstanceOf[SourceComponent[In]]))
     }
 
+  }
+
+  import edu.uwm.cs.mir.prototypes.aws.AWSS3Config
+  case class InvertedIndexQueryResultAdaptor(result: Seq[InvertedIndexSearchResult]) extends IFeature {
+    override def getId[T]() = null.asInstanceOf[T]
+    override def getFeature[T]() = this.asInstanceOf[T]
+    override def getType[T]() = null.asInstanceOf[T]
+    override def getAWSS3Config() = null
+    override def setAWSS3Config(config: AWSS3Config) = {}
+    def printResult: String = {
+      var res: String = "result size = " + result.size + "\n"
+      result.map(elem => res = res + "docStringId:" + elem.docStringId + ",docId:" + elem.docId + /*",doc:" + elem.doc +*/ ",score:" + elem.score + "\n")
+      res
+    }
+
+    def top(another: InvertedIndexQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT): InvertedIndexQueryResultAdaptor = {
+      new InvertedIndexQueryResultAdaptor((result.union(another.result)).take(numOfTopResult))
+    }
+  }
+
+  class InvertedIndexSearcher(val index: InvertedIndex, val tokenizer: Tokenizer) {
+    class SearchResult(val docStringId: String, val score: Double)
+    def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
+    def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
+    def searchOR(q: String, topk: Int) = {
+      val accums = new collection.mutable.HashMap[Int, SearchResult] //Map(docId -> Score)
+      for (term <- tokenizer.tokenize(q)) {
+        for (posting <- index.invertedIndex.getOrElse(term, Nil)) {
+          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
+        }
+      }
+      //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
+      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
+        resultList.sortWith(_>_).take(topk)   
+    }
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericInvertedIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, InvertedIndexQueryResultAdaptor, IIndex] {
+    def apply(in: IFeature): InvertedIndexQueryResultAdaptor = {
+      val searcher = new InvertedIndexSearcher(this.index.get.asInstanceOf[InvertedIndex], new Tokenizer)
+      new InvertedIndexQueryResultAdaptor(searcher.searchOR(in.asInstanceOf[HistogramString].getFeature.toString, numOfTopResult))
+    }
+
+    override def setIndex(index: IIndex): Unit = {
+      this.index = Some(index.asInstanceOf[IIndex])
+    }
+
+    override def setModel(model: IModel): Unit = {}
   }
 
   @SerialVersionUID(1L)
@@ -166,21 +280,21 @@ object GenericImpl {
     override def setIndex(index: IIndex): Unit = {}
     override def setModel(model: IModel): Unit = {}
   }
-  
-//  @SerialVersionUID(1L)
-//  case class GenericDummyColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
-//    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
-//    override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
-//      log("Apply DummyColorLayout to " + in.getId())("INFO")
-//      new LireDistanceFeatureAdaptor("nullId", 0)
-//      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
-//      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
-//      //new LireFeatureAdaptor(in.getId(), null, "")
-//    }
-//
-//    override def setIndex(index: IIndex): Unit = {}
-//    override def setModel(model: IModel): Unit = {}
-//  }
+
+  //  @SerialVersionUID(1L)
+  //  case class GenericDummyColorLayout(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[LireFeatureAdaptor, LireDistanceFeatureAdaptor] {
+  //    val colorLayout = new ColorLayout(scaleWidth, scaleHeight)
+  //    override def apply(in: LireFeatureAdaptor): LireDistanceFeatureAdaptor = {
+  //      log("Apply DummyColorLayout to " + in.getId())("INFO")
+  //      new LireDistanceFeatureAdaptor("nullId", 0)
+  //      //if (awsS3Config.isIs_s3_storage()) colorLayout.setAWSS3Config(awsS3Config)
+  //      //colorLayout.apply(in).asInstanceOf[LireFeatureAdaptor]
+  //      //new LireFeatureAdaptor(in.getId(), null, "")
+  //    }
+  //
+  //    override def setIndex(index: IIndex): Unit = {}
+  //    override def setModel(model: IModel): Unit = {}
+  //  }
 
   @SerialVersionUID(1L)
   case class GenericEdgeHistogram(scaleWidth: Int = SCALE_WIDTH, scaleHeight: Int = SCALE_HEIGHT) extends GenericProj[Image, LireFeatureAdaptor] {
@@ -189,6 +303,35 @@ object GenericImpl {
       log("Apply EdgeHistogram to " + in.getId())("INFO")
       if (awsS3Config.isIs_s3_storage()) edgeHistogram.setAWSS3Config(awsS3Config)
       edgeHistogram.apply(in).asInstanceOf[LireFeatureAdaptor]
+    }
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
+  }
+
+  case class HistogramString(val id: String, val theType: String, val histogramString: String) extends IFeature {
+    override def getId[String]() = { id.asInstanceOf[String] }
+    override def getFeature[String]() = { histogramString.asInstanceOf[String] }
+    override def getType[String]() = { theType.asInstanceOf[String] }
+    override def getAWSS3Config() = null
+    override def setAWSS3Config(config: AWSS3Config) = {}
+  }
+
+  @SerialVersionUID(1L)
+  case class GenericHistogramString() extends GenericProj[Histogram, HistogramString] {
+    override def apply(in: Histogram): HistogramString = {
+      log("Convert Histogram to String: " + in.getId())("INFO")
+      var result: String = ""
+      val hist = in.getFeature()
+      val intHist = hist.map(elem => elem.toInt)
+
+      for (i <- 1 to intHist.size - 1) {
+        val visualWordIndex = intHist(i)
+        for (j <- 1 to visualWordIndex) {
+          result = result + 'v' + i + ' '
+        }
+      }
+      new HistogramString(in.getId, in.getType[String], result)
     }
 
     override def setIndex(index: IIndex): Unit = {}

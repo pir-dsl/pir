@@ -2,6 +2,7 @@ package edu.uwm.cs.pir.compile
 import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.graph.Proj._
+import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.mir.prototypes.feature._
 import edu.uwm.cs.mir.prototypes.model._
 import edu.uwm.cs.mir.prototypes.composer._
@@ -11,7 +12,7 @@ import scala.reflect.ClassTag
 import edu.uwm.cs.pir.graph.Vertex
 
 class Visitor {
-      def visit[In <: IFeature, Out <: IFeature  : ClassTag] (load: LoadStage[In, Out]) {}
+      def visit[In <: IFeature, Out <: IFeature : ClassTag] (load: LoadStage[In, Out]) {}
       def visit[In <: IFeature, Out <: IFeature : ClassTag] (pipe: SourcePipe[In, Out]) {}
       def visit[In <: IFeature: ClassTag] (pipe: FilterPipe[In]) {}
       def visit[In <: IFeature: ClassTag] (pipe: SortPipe[In], order : Boolean) {}
@@ -21,8 +22,11 @@ class Visitor {
       def visit[In <: IFeature, Model <: IModel] (train: TrainStage[In, Model]) {}
       def visit[In <: IFeature, In2 <:IFeature, Model <: IModel] (train: TrainStage2[In, In2, Model]) {}
       def visit[In <: IFeature, Index <: IIndex] (index: IndexStage[In, Index]) {}
+      def visit[In <: IFeature, Index <: IIndex: ClassTag] (index: HistogramIndexStage[In, Index]) {}
       def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose] 
       (query: LuceneQueryStage[In, Out, Index, Compose]) {}
+      def visit[In <: IFeature, Out <: IFeature, Index <: IIndex] 
+      (query: InvertedIndexQueryStage[In, Out, Index]) {}     
 }
 
 class JobVisitor extends Visitor {

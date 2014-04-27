@@ -68,10 +68,21 @@ object Function {
   def f_ldaProj = new GenericLDA()
 
   def f_weightedQuery() = new GenericLuceneQuery()
+  
+  def f_invertedIndexQuery() = new GenericInvertedIndexQuery()
 
   def f_luceneIdx() = {
     val indexer = new LuceneIndexer(INDEX_IMAGE_FEATURE_ROOT)
     new GenericLuceneIndex[Image, IIndex](indexer)
+  }
+  
+  def f_histogramIdx() = {
+    val indexer = new GenericInvertedIndexer()
+    new GenericHistogramIndex[HistogramString, IIndex](indexer)
+  }
+  
+  def f_histogramString() = {
+    new GenericHistogramString()
   }
 
 }
