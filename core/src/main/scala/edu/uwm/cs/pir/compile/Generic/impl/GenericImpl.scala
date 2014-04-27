@@ -196,7 +196,8 @@ object GenericImpl {
           accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
         }
       }
-      accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.sorted.take(topk)
+      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList
+      resultList.sorted.take(topk)
     }
   }
 
