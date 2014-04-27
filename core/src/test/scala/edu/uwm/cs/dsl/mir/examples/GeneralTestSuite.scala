@@ -23,10 +23,10 @@ import org.scalatest.junit.JUnitRunner
 class PIRGenericSuite extends FunSuite {
     
   test ("InvertedIndexSearchResultSorting") {
-    val array = List(new InvertedIndexSearchResult(1, "docId1", "result1", 8.1), 
-        new InvertedIndexSearchResult(2, "docId1", "result1", 3.5),
-    	new InvertedIndexSearchResult(3, "docId1", "result1", 4.6),
-    	new InvertedIndexSearchResult(4, "docId1", "result1", 7.8)).toSeq.sorted
+    val array = List(InvertedIndexSearchResult(1, "docId1", "result1", 8.1), 
+        InvertedIndexSearchResult(2, "docId1", "result1", 3.5),
+    	InvertedIndexSearchResult(3, "docId1", "result1", 4.6),
+    	InvertedIndexSearchResult(4, "docId1", "result1", 7.8)).toSeq.sorted
     array.map(elem => println(elem))
   }
 
