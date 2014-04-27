@@ -130,7 +130,7 @@ object Strategy {
       query.index.accept(this)
       val queryFeature = query.source.cache.get.first
       query.query.setIndex(query.index.cacheIndex.get)
-      val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
+      val queryResult = query.query.asInstanceOf[GenericInvertedIndexQuery].apply(queryFeature)
       log(queryResult.printResult)("INFO")
     }
 
@@ -355,7 +355,7 @@ object Strategy {
 
       val finalResult = query.index.cacheRDDIndex.get.map(index => {
         query.query.setIndex(index)
-        val queryResult = query.query.asInstanceOf[GenericNaiveIndexQuery].apply(queryFeature)
+        val queryResult = query.query.asInstanceOf[GenericInvertedIndexQuery].apply(queryFeature)
         log(queryResult.printResult)
         queryResult
       }).persist.reduce((elem1, elem2) => elem1.top(elem2))

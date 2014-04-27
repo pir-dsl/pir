@@ -106,9 +106,7 @@ object GenericImpl {
       else 0
     }
 
-    def printResult: Unit = {
-      print(docId + ", "  + score + "\n")
-    }
+    def printResult = print(docId + ", "  + score + "\n")
   }
 
   class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
@@ -200,13 +198,14 @@ object GenericImpl {
           accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
         }
       }
+      //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
       val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
         resultList.sorted.take(topk)   
     }
   }
 
   @SerialVersionUID(1L)
-  case class GenericNaiveIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
+  case class GenericInvertedIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
     def apply(in: IFeature): NaiveQueryResultAdaptor = {
       val searcher = new InvertedIndexSearcher(this.index.get.asInstanceOf[InvertedIndex], new Tokenizer)
       new NaiveQueryResultAdaptor(searcher.searchOR(in.asInstanceOf[HistogramString].getFeature.toString, numOfTopResult))

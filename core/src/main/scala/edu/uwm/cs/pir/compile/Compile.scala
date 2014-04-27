@@ -39,7 +39,7 @@ object Compile {
     idx.index(featureSource)
   }
 
-  def invertedIndexQuery(query: GenericNaiveIndexQuery, idx: HistogramIndexStage[HistogramString, IIndex], qFeature: SourceComponent[HistogramString]) = {
+  def invertedIndexQuery(query: GenericInvertedIndexQuery, idx: HistogramIndexStage[HistogramString, IIndex], qFeature: SourceComponent[HistogramString]) = {
     qFeature.connect(query, idx)
   }
   

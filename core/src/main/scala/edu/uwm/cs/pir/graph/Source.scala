@@ -66,7 +66,7 @@ object Source {
         this, index, compose)
     }
     
-    def connect[NewOut <: IFeature, Index <: IIndex](query: GenericNaiveIndexQuery, index: HistogramIndexStage[NewOut, Index]) = {
+    def connect[NewOut <: IFeature, Index <: IIndex](query: GenericInvertedIndexQuery, index: HistogramIndexStage[NewOut, Index]) = {
       new NaiveIndexQueryStage[Out, NewOut, Index](query.asInstanceOf[GenericProjWithBasicIndex[Out, NewOut, Index]], this, index)
     }
     
