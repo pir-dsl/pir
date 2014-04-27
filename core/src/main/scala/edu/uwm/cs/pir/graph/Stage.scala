@@ -139,7 +139,7 @@ object Stage {
   }
 
   @SerialVersionUID(1L)
-  class NaiveIndexQueryStage[In <: IFeature, Out <: IFeature, Index <: IIndex](val query: GenericProjWithBasicIndex[In, Out, Index],
+  class InvertedIndexQueryStage[In <: IFeature, Out <: IFeature, Index <: IIndex](val query: GenericProjWithBasicIndex[In, Out, Index],
     val source: SourceComponent[In],
     val index: HistogramIndexStage[Out, Index]) extends Vertex with Serializable {
 
@@ -148,7 +148,7 @@ object Stage {
 
     def accept(v: Visitor) = v.visit(this)
 
-    override def toString = "Naive Index Query Stage-" + query
+    override def toString = "Inverted Index Query Stage-" + query
   }
 
   @SerialVersionUID(1L)

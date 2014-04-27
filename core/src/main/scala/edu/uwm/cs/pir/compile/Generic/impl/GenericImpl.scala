@@ -170,7 +170,7 @@ object GenericImpl {
   }
 
   import edu.uwm.cs.mir.prototypes.aws.AWSS3Config
-  case class NaiveQueryResultAdaptor(result: Seq[InvertedIndexSearchResult]) extends IFeature {
+  case class InvertedIndexQueryResultAdaptor(result: Seq[InvertedIndexSearchResult]) extends IFeature {
     override def getId[T]() = null.asInstanceOf[T]
     override def getFeature[T]() = this.asInstanceOf[T]
     override def getType[T]() = null.asInstanceOf[T]
@@ -178,12 +178,12 @@ object GenericImpl {
     override def setAWSS3Config(config: AWSS3Config) = {}
     def printResult: String = {
       var res: String = "result size = " + result.size + "\n"
-      result.map(elem => res = res + "docStringId:" + elem.docStringId + ",docId:" + elem.docId + ",doc:" + elem.doc + ",score:" + elem.score + "\n")
+      result.map(elem => res = res + "docStringId:" + elem.docStringId + ",docId:" + elem.docId + /*",doc:" + elem.doc +*/ ",score:" + elem.score + "\n")
       res
     }
 
-    def top(another: NaiveQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT): NaiveQueryResultAdaptor = {
-      new NaiveQueryResultAdaptor((result.union(another.result)).take(numOfTopResult))
+    def top(another: InvertedIndexQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT): InvertedIndexQueryResultAdaptor = {
+      new InvertedIndexQueryResultAdaptor((result.union(another.result)).take(numOfTopResult))
     }
   }
 
@@ -205,10 +205,10 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  case class GenericInvertedIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, NaiveQueryResultAdaptor, IIndex] {
-    def apply(in: IFeature): NaiveQueryResultAdaptor = {
+  case class GenericInvertedIndexQuery(numOfTopResult: Int = NUM_OF_TOP_RESULT) extends GenericProjWithBasicIndex[IFeature, InvertedIndexQueryResultAdaptor, IIndex] {
+    def apply(in: IFeature): InvertedIndexQueryResultAdaptor = {
       val searcher = new InvertedIndexSearcher(this.index.get.asInstanceOf[InvertedIndex], new Tokenizer)
-      new NaiveQueryResultAdaptor(searcher.searchOR(in.asInstanceOf[HistogramString].getFeature.toString, numOfTopResult))
+      new InvertedIndexQueryResultAdaptor(searcher.searchOR(in.asInstanceOf[HistogramString].getFeature.toString, numOfTopResult))
     }
 
     override def setIndex(index: IIndex): Unit = {

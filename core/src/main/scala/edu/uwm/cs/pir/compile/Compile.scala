@@ -35,7 +35,7 @@ object Compile {
     idx.index(featureList)
   }
   
-  def naiveIndex(idx: GenericHistogramIndex[HistogramString, IIndex], featureSource: SourceComponent[HistogramString]): HistogramIndexStage[HistogramString, IIndex] = {
+  def invertedIndex(idx: GenericHistogramIndex[HistogramString, IIndex], featureSource: SourceComponent[HistogramString]): HistogramIndexStage[HistogramString, IIndex] = {
     idx.index(featureSource)
   }
 

@@ -26,7 +26,7 @@ class Visitor {
       def visit[In <: IFeature, Out <: IFeature, Index <: IIndex, Compose <: ICompose] 
       (query: LuceneQueryStage[In, Out, Index, Compose]) {}
       def visit[In <: IFeature, Out <: IFeature, Index <: IIndex] 
-      (query: NaiveIndexQueryStage[In, Out, Index]) {}     
+      (query: InvertedIndexQueryStage[In, Out, Index]) {}     
 }
 
 class JobVisitor extends Visitor {

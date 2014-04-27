@@ -125,7 +125,7 @@ object Strategy {
         })
     }
 
-    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
+    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: InvertedIndexQueryStage[In, Out, Index]) {
       query.source.accept(this)
       query.index.accept(this)
       val queryFeature = query.source.cache.get.first
@@ -344,7 +344,7 @@ object Strategy {
       index.setRDDIndex(Some(resultIndex))
     }
 
-    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: NaiveIndexQueryStage[In, Out, Index]) {
+    override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex](query: InvertedIndexQueryStage[In, Out, Index]) {
       query.source.accept(this)
       query.index.accept(this)
 

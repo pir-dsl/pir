@@ -82,7 +82,7 @@ object NaiveIndexQuery {
 
     val siftImg = img.connect(f_sift)
     val kModel = train(f_kMeansTrain, siftImg)
-    val idx = naiveIndex(f_histogramIdx, siftImg.connect(f_cluster, kModel).connect(f_histogramString))
+    val idx = invertedIndex(f_histogramIdx, siftImg.connect(f_cluster, kModel).connect(f_histogramString))
 
     invertedIndexQuery(f_invertedIndexQuery, idx, qImg.connect(f_sift).connect(f_cluster, kModel).connect(f_histogramString))
   }

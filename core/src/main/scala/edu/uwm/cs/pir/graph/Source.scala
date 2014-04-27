@@ -67,11 +67,11 @@ object Source {
     }
     
     def connect[NewOut <: IFeature, Index <: IIndex](query: GenericInvertedIndexQuery, index: HistogramIndexStage[NewOut, Index]) = {
-      new NaiveIndexQueryStage[Out, NewOut, Index](query.asInstanceOf[GenericProjWithBasicIndex[Out, NewOut, Index]], this, index)
+      new InvertedIndexQueryStage[Out, NewOut, Index](query.asInstanceOf[GenericProjWithBasicIndex[Out, NewOut, Index]], this, index)
     }
     
     /*def connect[NewOut <: IFeature, Index <: IIndex](pair: (GenericProjWithIndex[Out, NewOut, Index], HistogramIndexStage[NewOut, Index])) = {
-      new NaiveIndexQueryStage[Out, NewOut, Index](pair._1.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]], this, pair._2)
+      new InvertedIndexQueryStage[Out, NewOut, Index](pair._1.asInstanceOf[GenericProjWithIndex[Out, NewOut, Index]], this, pair._2)
     }*/
 
     //    def connect[NewOut <: IFeature, Model <: IModel] (stage: ProjWithModelStage[Out, NewOut, Model]): SourceComponent[NewOut] = {
