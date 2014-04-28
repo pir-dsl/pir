@@ -4,10 +4,8 @@ import edu.uwm.cs.pir.graph.Proj._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
 import edu.uwm.cs.pir.graph.Stage._
-import edu.uwm.cs.pir.compile.Visitor
-import edu.uwm.cs.pir.graph.Source.SourcePipe
-import edu.uwm.cs.pir.graph.Source.SortPipe
-import edu.uwm.cs.pir.graph.Source.FilterPipe
+import edu.uwm.cs.pir.compile._
+import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.misc._
 
@@ -223,13 +221,29 @@ object Strategy {
 
     override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
-        time(basicIndexFunc(index, this))("" + index.indexer)
+        if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)) {
+           index.cacheIndex = loadS3Persisted(awsS3Config.getS3_persistence_bucket_name)
+        } else {
+           time(basicIndexFunc(index, this))("" + index.indexer)
+           persistS3(index.cacheIndex)
+        }
       }
       index.cacheIndex
     }
-
   }
 
+  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag] (source: SourceComponent[In], S3Location : String) : Boolean  = {
+    false
+  }
+  
+  def loadS3Persisted[Index <: IIndex] (S3Location : String) : Option[Index] = {
+     null
+  }
+  
+  def persistS3[Index <: IIndex](cacheIndex: Option[Index]): Unit = {
+    
+  }
+  
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
     var fs: List[IFeature] = Nil
 

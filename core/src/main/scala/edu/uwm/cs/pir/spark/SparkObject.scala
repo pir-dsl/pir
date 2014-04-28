@@ -33,8 +33,9 @@ object SparkObject {
 		val s3_root = conf.getString("aws_env.s3_root")
 		val isS3Storage = conf.getString("aws_env.is_s3_storage")	
 		log("isS3Storage = " + isS3Storage)("INFO")
+		val s3_persistence_bucket_name = conf.getString("s3_persistence_bucket_name")
 		new AWSS3Config(if ("true" == isS3Storage) true else false, 
-				if ("true" == isMd5Validation) true else false, bucketName, s3_root)	  
+				if ("true" == isMd5Validation) true else false, bucketName, s3_root, s3_persistence_bucket_name)	  
   }
   
   def initSparkConf : SparkContext = {
