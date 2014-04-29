@@ -44,6 +44,8 @@ object GenericImpl {
       }
     }
 
+    override def getInfo = super.getInfo + "<<<" + url + ">>>"
+    
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
         None
@@ -77,6 +79,8 @@ object GenericImpl {
       }
     }
 
+    override def getInfo = super.getInfo + ":::" + url + ":::"
+    
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
         None

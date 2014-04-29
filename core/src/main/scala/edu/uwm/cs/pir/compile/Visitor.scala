@@ -31,9 +31,11 @@ class Visitor {
 
 class JobVisitor extends Visitor {
       val queue : Queue[Vertex] = new Queue[Vertex]
+      var visitedPath : String = ""
   
       override def visit[In <: IFeature, Out <: IFeature : ClassTag] (load: LoadStage[In, Out]) {
     	  if (!queue.contains(load)) queue.enqueue(load)
+    	  visitedPath += load.load.getInfo
       }
       
       override def visit[In <: IFeature, Out <: IFeature : ClassTag] (pipe: SourcePipe[In, Out]) {
@@ -45,12 +47,12 @@ class JobVisitor extends Visitor {
       override def visit[In <: IFeature, Middle <:IFeature, Out <: IFeature] (pipe: ProjPipe[In, Middle, Out]) {}
 
       override def visit[In <: IFeature, Out <: IFeature] (proj: ProjStage[In, Out]) {
-//          if (!queue.contains(proj)) queue.enqueue(proj)
+    	  //if (!queue.contains(proj)) queue.enqueue(proj)
       }
 
       override def visit[In <: IFeature, Out <: IFeature, Model <: IModel] (proj: ProjWithModelStage[In, Out, Model]) {
           proj.train.accept(this)
-//          if (!queue.contains(proj)) queue.enqueue(proj)
+          //if (!queue.contains(proj)) queue.enqueue(proj)
       }
 
       override def visit[In <: IFeature, Model <: IModel] (train: TrainStage[In, Model]) {
@@ -62,6 +64,17 @@ class JobVisitor extends Visitor {
           train.source1.accept(this)
           train.source2.accept(this)
           if (!queue.contains(train)) queue.enqueue(train)
+      }
+      
+      override def visit[In <: IFeature, Out <: IFeature, Index <: IIndex] (query: InvertedIndexQueryStage[In, Out, Index]) {
+        query.index.accept(this)
+        query.source.accept(this)
+        if (!queue.contains(query)) queue.enqueue(query)
+      }
+      
+      override def visit[In <: IFeature, Index <: IIndex : ClassTag] (index: HistogramIndexStage[In, Index]) {
+          index.source.accept(this)
+          if (!queue.contains(index)) queue.enqueue(index)
       }
       
       override def visit[In <: IFeature, Index <: IIndex] (index: IndexStage[In, Index]) {

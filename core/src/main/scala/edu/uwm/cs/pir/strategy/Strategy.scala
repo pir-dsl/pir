@@ -8,6 +8,7 @@ import edu.uwm.cs.pir.compile._
 import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.misc._
+import edu.uwm.cs.pir.aws.AWSS3API._
 
 import edu.uwm.cs.mir.prototypes.feature._
 import edu.uwm.cs.mir.prototypes.model._
@@ -222,25 +223,34 @@ object Strategy {
     override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
         if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)) {
-           index.cacheIndex = loadS3Persisted(awsS3Config.getS3_persistence_bucket_name)
+           index.cacheIndex = loadS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)
         } else {
            time(basicIndexFunc(index, this))("" + index.indexer)
-           persistS3(index.cacheIndex)
+           persistS3(index.source, index.cacheIndex)
         }
       }
       index.cacheIndex
     }
   }
 
-  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag] (source: SourceComponent[In], S3Location : String) : Boolean  = {
-    false
+  def getVisitedPath[In <: IFeature] (source: SourceComponent[In]) = {
+    val v = new JobVisitor
+    source.accept(v)
+    v.visitedPath
   }
   
-  def loadS3Persisted[Index <: IIndex] (S3Location : String) : Option[Index] = {
+  def getPersistedId (vp: String) = vp.substring(vp.indexOf("<<<"), vp.indexOf(">>>"))
+  
+  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag] (source: SourceComponent[In], S3Location : String) : Boolean  = {
+    val vp = getVisitedPath(source)
+    if (vp.isEmpty()) false else isExistingS3Location(getPersistedId(vp))		  
+  }
+  
+  def loadS3Persisted[In <: IFeature, Index <: IIndex] (source: SourceComponent[In], S3Location : String) : Option[Index] = {
      null
   }
   
-  def persistS3[Index <: IIndex](cacheIndex: Option[Index]): Unit = {
+  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], cacheIndex: Option[Index]): Unit = {
     
   }
   
