@@ -16,6 +16,7 @@ import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.mir.prototypes.feature.lire._
 import edu.uwm.cs.mir.prototypes.composer.ICompose
 import edu.uwm.cs.mir.prototypes.composer._
+import edu.uwm.cs.mir.prototypes.utils.Utils._
 
 import scala.collection.JavaConverters._
 import java.util.concurrent.{ Callable, Executors }
@@ -226,7 +227,7 @@ object Strategy {
            index.cacheIndex = loadS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)
         } else {
            time(basicIndexFunc(index, this))("" + index.indexer)
-           persistS3(index.source, index.cacheIndex)
+           persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex])
         }
       }
       index.cacheIndex
@@ -247,11 +248,13 @@ object Strategy {
   }
   
   def loadS3Persisted[In <: IFeature, Index <: IIndex] (source: SourceComponent[In], S3Location : String) : Option[Index] = {
-     null
+    val id = getPersistedId(getVisitedPath(source))
+    deSerializeObject(id, awsS3Config).asInstanceOf[Some[Index]]
   }
   
-  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], cacheIndex: Option[Index]): Unit = {
-    
+  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex): Unit = {
+    val id = getPersistedId(getVisitedPath(source))
+    serializeObject(index, awsS3Config, id);
   }
   
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {

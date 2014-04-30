@@ -113,7 +113,8 @@ object GenericImpl {
     def printResult = print(docId + ", "  + score + "\n")
   }
 
-  class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
+  @SerialVersionUID(1L)
+  class InvertedIndex(val tokenizer: Tokenizer) extends IIndex with Serializable {
 
     override def getLocation(): String = "";
 
