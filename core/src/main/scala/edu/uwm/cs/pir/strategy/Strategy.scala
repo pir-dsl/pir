@@ -240,7 +240,7 @@ object Strategy {
     v.visitedPath
   }
   
-  def getPersistedId (vp: String) = vp.substring(vp.indexOf("<<<"), vp.indexOf(">>>"))
+  def getPersistedId (vp: String) = {log(vp)("INFO");vp.substring(vp.indexOf("<<<"), vp.indexOf(">>>"))}
   
   def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag] (source: SourceComponent[In], S3Location : String) : Boolean  = {
     val vp = getVisitedPath(source)
