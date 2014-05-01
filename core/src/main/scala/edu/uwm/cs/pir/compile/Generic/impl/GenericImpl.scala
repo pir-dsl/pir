@@ -505,7 +505,7 @@ object GenericImpl {
 
   @SerialVersionUID(1L)
   case class GenericCCATrain(imageFeatureSize: Int = NUM_OF_CLUSTERS, textFeatureSize: Int = if (awsS3Config.isIs_s3_storage()) {
-    edu.uwm.cs.mir.prototypes.aws.AWSS3API.getNumberOfLinesOfS3Objects(awsS3Config, GROUND_TRUTH_CATEGORY_LIST, edu.uwm.cs.mir.prototypes.aws.AWSS3API.getAmazonS3Client(awsS3Config))
+    edu.uwm.cs.mir.prototypes.aws.AWSS3API.getNumberOfLinesOfS3Objects(awsS3Config, GROUND_TRUTH_CATEGORY_LIST, edu.uwm.cs.mir.prototypes.aws.AWSS3API.getAmazonS3Client(awsS3Config), false)
   } else {
     FileUtils.readLines(new File(GROUND_TRUTH_CATEGORY_LIST)).size()
   }) extends GenericTrain2[Histogram, LdaFeature, CCAModel] {
