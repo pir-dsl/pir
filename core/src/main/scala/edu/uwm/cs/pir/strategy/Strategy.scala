@@ -251,7 +251,7 @@ object Strategy {
   def loadS3Persisted[In <: IFeature, Index <: IIndex] (source: SourceComponent[In], S3Location : String) : Option[Index] = {
     val id = getPersistedId(getVisitedPath(source))
     log("loadS3Persisted: " + id)("INFO")
-    deSerializeObject(id, awsS3Config, true).asInstanceOf[Some[Index]]
+    Some(deSerializeObject(id, awsS3Config, true).asInstanceOf[Index])
   }
   
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex): Unit = {
