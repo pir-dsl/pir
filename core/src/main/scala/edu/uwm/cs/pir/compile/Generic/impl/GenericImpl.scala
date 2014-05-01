@@ -96,8 +96,9 @@ object GenericImpl {
     }
   }
 
+  @SerialVersionUID(1L)
   //class Tokenizer(val p: String = "[^a-z0-9]+") {
-  class Tokenizer(val p: String = " ") {
+  class Tokenizer(val p: String = " ") extends Serializable {
     //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
   }
