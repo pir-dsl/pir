@@ -251,13 +251,13 @@ object Strategy {
   def loadS3Persisted[In <: IFeature, Index <: IIndex] (source: SourceComponent[In], S3Location : String) : Option[Index] = {
     val id = getPersistedId(getVisitedPath(source))
     log("loadS3Persisted: " + id)("INFO")
-    deSerializeObject(id, awsS3Config).asInstanceOf[Some[Index]]
+    deSerializeObject(id, awsS3Config, true).asInstanceOf[Some[Index]]
   }
   
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex): Unit = {
     val id = getPersistedId(getVisitedPath(source))
     log("persistS3: " + id)("INFO")
-    serializeObject(index, awsS3Config, id);
+    serializeObject(index, awsS3Config, id, true);
   }
   
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
