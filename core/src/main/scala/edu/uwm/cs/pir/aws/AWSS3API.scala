@@ -1,6 +1,7 @@
 package edu.uwm.cs.pir.aws
 
 import edu.uwm.cs.pir.spark.SparkObject._
+import edu.uwm.cs.pir.misc.Utils._
 
 import scala.collection.JavaConversions._
 
@@ -37,7 +38,9 @@ object AWSS3API {
 
   def isExistingS3Location(S3String: String): Boolean = {
     val amazonS3Client = getAmazonS3Client(awsS3Config);
-    checkObjectExists(awsS3Config, S3String, amazonS3Client, true) 
+    val result = checkObjectExists(awsS3Config, S3String, amazonS3Client, true) 
+    log("isExistingS3Location=" + result)("INFO")
+    result
   }
 
 }
