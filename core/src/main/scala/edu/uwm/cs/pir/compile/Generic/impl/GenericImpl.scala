@@ -79,7 +79,7 @@ object GenericImpl {
       }
     }
 
-    override def getInfo = super.getInfo + ":::" + url + ":::"
+    override def getInfo = super.getInfo + "<<<" + url + ">>>"
     
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
