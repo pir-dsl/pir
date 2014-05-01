@@ -240,20 +240,23 @@ object Strategy {
     v.visitedPath
   }
   
-  def getPersistedId (vp: String) = {log(vp)("INFO");vp.substring(vp.lastIndexOf("<<<"), vp.lastIndexOf(">>>")).replaceAll("/", "-")}
+  def getPersistedId (vp: String) = {log(vp)("INFO");vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-")}
   
   def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag] (source: SourceComponent[In], S3Location : String) : Boolean  = {
     val vp = getVisitedPath(source)
+    log("checkS3Persisted: " + vp)("INFO")
     if (vp.isEmpty()) false else isExistingS3Location(getPersistedId(vp))		  
   }
   
   def loadS3Persisted[In <: IFeature, Index <: IIndex] (source: SourceComponent[In], S3Location : String) : Option[Index] = {
     val id = getPersistedId(getVisitedPath(source))
+    log("loadS3Persisted: " + id)("INFO")
     deSerializeObject(id, awsS3Config).asInstanceOf[Some[Index]]
   }
   
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex): Unit = {
     val id = getPersistedId(getVisitedPath(source))
+    log("persistS3: " + id)("INFO")
     serializeObject(index, awsS3Config, id);
   }
   
