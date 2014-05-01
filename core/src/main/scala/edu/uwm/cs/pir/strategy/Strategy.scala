@@ -224,42 +224,54 @@ object Strategy {
     override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
         if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)) {
-           index.cacheIndex = loadS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)
+          index.cacheIndex = loadS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)
         } else {
-           time(basicIndexFunc(index, this))("" + index.indexer)
-           persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex])
+          time(basicIndexFunc(index, this))("" + index.indexer)
+          persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex])
         }
       }
       index.cacheIndex
     }
   }
 
-  def getVisitedPath[In <: IFeature] (source: SourceComponent[In]) = {
-    val v = new JobVisitor
-    source.accept(v)
-    v.visitedPath
+  def traversePipe[In <: IFeature](source: SourceComponent[In]) = {
+    if (thisV.queue.isEmpty) source.accept(thisV)
   }
-  
-  def getPersistedId (vp: String) = {log(vp)("INFO");vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-")}
-  
-  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag] (source: SourceComponent[In], S3Location : String) : Boolean  = {
+
+  def getVisitedPath[In <: IFeature](source: SourceComponent[In]) = {
+    traversePipe(source)
+    thisV.visitedPath
+  }
+
+  def getPathSequence[In <: IFeature](source: SourceComponent[In]) = {
+    traversePipe(source)
+    thisV.queue.dequeueAll(v => true).foldLeft("v")((r, op) => r + "-" + op.getClass().getSimpleName())
+  }
+
+  def getPersistedId(vp: String) = { log(vp)("INFO"); vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-") }
+
+  def getUID[In <: IFeature](source: SourceComponent[In]) = getPathSequence(source) + "/" + getPersistedId(getVisitedPath(source))
+
+  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], S3Location: String): Boolean = {
     val vp = getVisitedPath(source)
     log("checkS3Persisted: " + vp)("INFO")
-    if (vp.isEmpty()) false else isExistingS3Location(getPersistedId(vp))		  
+    val pathSequence = getPathSequence(source)
+    log("pathSequence: " + pathSequence)("INFO")
+    if (vp.isEmpty()) false else isExistingS3Location(getUID(source))
   }
-  
-  def loadS3Persisted[In <: IFeature, Index <: IIndex] (source: SourceComponent[In], S3Location : String) : Option[Index] = {
-    val id = getPersistedId(getVisitedPath(source))
+
+  def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], S3Location: String): Option[Index] = {
+    val id = getUID(source)
     log("loadS3Persisted: " + id)("INFO")
     Some(deSerializeObject(id, awsS3Config, true).asInstanceOf[Index])
   }
-  
+
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex): Unit = {
-    val id = getPersistedId(getVisitedPath(source))
+    val id = getUID(source)
     log("persistS3: " + id)("INFO")
     serializeObject(index, awsS3Config, id, true);
   }
-  
+
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
     var fs: List[IFeature] = Nil
 
@@ -288,6 +300,8 @@ object Strategy {
     log("index data with " + index.indexer + "\n")
     index.setIndex(Some(index.indexer.apply(fs.asInstanceOf[List[List[In]]])))
   }
+
+  var thisV: JobVisitor = null
 
   case class SequentialStrategy() extends RunStrategy {}
 
