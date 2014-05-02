@@ -301,7 +301,7 @@ object Strategy {
     index.setIndex(Some(index.indexer.apply(fs.asInstanceOf[List[List[In]]])))
   }
 
-  var thisV: JobVisitor = null
+  val thisV = new JobVisitor
 
   case class SequentialStrategy() extends RunStrategy {}
 
