@@ -245,7 +245,7 @@ object Strategy {
 
   def getPathSequence[In <: IFeature](source: SourceComponent[In]) = {
     traversePipe(source)
-    thisV.queue.dequeueAll(v => true).foldLeft("v")((r, op) => r + "-" + op.getClass().getSimpleName())
+    thisV.queue.dequeueAll(v => true).foldLeft("v:")((r, op) => r + "->" + op._1.getClass().getSimpleName())
   }
 
   def getPersistedId(vp: String) = { log(vp)("INFO"); vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-") }
@@ -255,8 +255,6 @@ object Strategy {
   def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], S3Location: String): Boolean = {
     val vp = getVisitedPath(source)
     log("checkS3Persisted: " + vp)("INFO")
-    val pathSequence = getPathSequence(source)
-    log("pathSequence: " + pathSequence)("INFO")
     if (vp.isEmpty()) false else isExistingS3Location(getUID(source))
   }
 
