@@ -29,7 +29,8 @@ class Visitor {
 
 class JobVisitor extends Visitor {
   val queue: Queue[(String, Vertex)] = new Queue[(String, Vertex)]
-  var visitedPath: String = ""
+  var visitedPath = ""
+  var projBuffer = ""
 
   override def visit[In <: IFeature, Out <: IFeature: ClassTag](load: LoadStage[In, Out]) {
     if (!queue.contains(load)) queue.enqueue((load.getClass.getSimpleName + "->" + load.load.getClass.getSimpleName, load))
@@ -39,7 +40,11 @@ class JobVisitor extends Visitor {
   override def visit[In <: IFeature, Out <: IFeature: ClassTag](pipe: SourcePipe[In, Out]) {
     pipe.left.accept(this)
     pipe.right.accept(this)
-    if (!queue.contains(pipe)) queue.enqueue((pipe.getClass.getSimpleName + "->" + pipe.right.getClass.getSimpleName, pipe))
+    val id = pipe.getClass.getSimpleName + "->" +
+      pipe.right.getClass.getSimpleName + 
+      (if (projBuffer.isEmpty) "" else ("->" + projBuffer))
+    projBuffer = ""
+    if (!queue.contains(pipe)) queue.enqueue((id, pipe))
   }
 
   override def visit[In <: IFeature: ClassTag](pipe: FilterPipe[In]) {
@@ -55,11 +60,13 @@ class JobVisitor extends Visitor {
   override def visit[In <: IFeature, Middle <: IFeature, Out <: IFeature](pipe: ProjPipe[In, Middle, Out]) {}
 
   override def visit[In <: IFeature, Out <: IFeature](proj: ProjStage[In, Out]) {
+    projBuffer = proj.proj.getClass.getSimpleName
     //if (!queue.contains(proj)) queue.enqueue(proj)
   }
 
   override def visit[In <: IFeature, Out <: IFeature, Model <: IModel](proj: ProjWithModelStage[In, Out, Model]) {
     proj.train.accept(this)
+    projBuffer = proj.proj.getClass.getSimpleName
     //if (!queue.contains(proj)) queue.enqueue(proj)
   }
 
