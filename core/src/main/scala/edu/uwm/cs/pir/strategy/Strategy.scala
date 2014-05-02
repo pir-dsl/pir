@@ -245,7 +245,7 @@ object Strategy {
 
   def getPathSequence[In <: IFeature](source: SourceComponent[In]) = {
     traversePipe(source)
-    thisV.queue.dequeueAll(v => true).foldLeft("v:")((r, op) => r + "->" + op._1.getClass().getSimpleName())
+    thisV.queue.dequeueAll(v => true).foldLeft("S")((r, op) => r + "->" + op._1)
   }
 
   def getPersistedId(vp: String) = { log(vp)("INFO"); vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-") }
