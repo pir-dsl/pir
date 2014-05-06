@@ -31,10 +31,12 @@ class JobVisitor extends Visitor {
   val queue: Queue[(String, Vertex)] = new Queue[(String, Vertex)]
   var visitedPath = ""
   var projBuffer = ""
+  var sourceSignature = ""  
 
   override def visit[In <: IFeature, Out <: IFeature: ClassTag](load: LoadStage[In, Out]) {
     if (!queue.contains(load)) queue.enqueue((load.getClass.getSimpleName + "->" + load.load.getClass.getSimpleName, load))
     visitedPath += load.load.getInfo
+    sourceSignature += load.load.getSignature
   }
 
   override def visit[In <: IFeature, Out <: IFeature: ClassTag](pipe: SourcePipe[In, Out]) {
