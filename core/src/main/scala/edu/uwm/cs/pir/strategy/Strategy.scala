@@ -29,6 +29,8 @@ import edu.uwm.cs.pir.spark.SparkObject._
 
 import scala.reflect.ClassTag
 
+import java.net._
+
 object Strategy {
 
   trait RunStrategy extends Visitor {
@@ -233,6 +235,15 @@ object Strategy {
       index.cacheIndex
     }
   }
+  
+  def getSourceString[In <: IFeature](source: SourceComponent[In])= {
+    //TODO
+    ""
+  }
+  
+  def isSourceAligned(source : String, persisted: String) = {
+    source.equals(persisted)
+  }
 
   def traversePipe[In <: IFeature](source: SourceComponent[In]) = {
     if (thisV.queue.isEmpty) source.accept(thisV)
@@ -250,22 +261,41 @@ object Strategy {
 
   def getPersistedId(vp: String) = { log(vp)("INFO"); vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-") }
 
-  def getUID[In <: IFeature](source: SourceComponent[In], partition : String = "") = getPathSequence(source) + "/" + getPersistedId(getVisitedPath(source))
-
-  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], S3Location: String,  partition : String = ""): Boolean = {
-    val vp = getVisitedPath(source)
-    log("checkS3Persisted: " + vp)("INFO")
-    if (vp.isEmpty()) false else isExistingS3Location(getUID(source, partition))
+  def getUID[In <: IFeature](source: SourceComponent[In], partition: String = "", hostname: String = "") = {
+    getPathSequence(source) + "/" + (if (partition.isEmpty) "" else partition + "/") + (if (hostname.isEmpty) getPersistedId(getVisitedPath(source)) else hostname)
   }
 
-  def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], S3Location: String, partition : String = ""): Option[Index] = {
+  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], S3Location: String, partition: String = "", hostnames: List[String] = Nil): Boolean = {
+    val vp = getVisitedPath(source)
+    log("checkS3Persisted: " + vp)("INFO")
+    if (vp.isEmpty()) false else {
+      if (hostnames == Nil) {
+        isExistingS3Location(getUID(source, partition))
+      } else {
+        hostnames.foldLeft(false)((r, c) => r | isExistingS3Location(getUID(source, partition, c)))
+      }
+    }
+  }
+
+  def loadS3PersistedSignature[In <: IFeature] (source: SourceComponent[In], partition: String, hostname: String): String = {
+    val id = getUID(source, partition, hostname)
+    log("loadS3Persisted: " + id)("INFO")
+    deSerializeObject(id, awsS3Config, true).asInstanceOf[String]
+  }
+  
+  def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], partition: String = ""): Option[Index] = {
     val id = getUID(source, partition)
     log("loadS3Persisted: " + id)("INFO")
     Some(deSerializeObject(id, awsS3Config, true).asInstanceOf[Index])
   }
 
-  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition : String = ""): Unit = {
-    val id = getUID(source, partition)
+  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
+    var id = getUID(source, partition, hostname)
+    log("persistS3: " + id)("INFO")
+    //TODO: Below "" needs to be set as the concatenated string of filenames
+    serializeObject("", awsS3Config, id, true);
+
+    id = getUID(source, partition)
     log("persistS3: " + id)("INFO")
     serializeObject(index, awsS3Config, id, true);
   }
@@ -363,7 +393,7 @@ object Strategy {
 
     override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
-          time(basicSparkIndexFunc(index, this))("" + index.indexer)
+        time(basicSparkIndexFunc(index, this))("" + index.indexer)
       }
     }
 
@@ -378,20 +408,26 @@ object Strategy {
       }
 
       val indexer = index.indexer
-//      indexer.apply(fs.asInstanceOf[List[In]])
+      //      indexer.apply(fs.asInstanceOf[List[In]])
 
       val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
-      val resultIndex = partitionedSource.map { elem => {
-        //TODO
-        if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name, sparkPartitionSize)) {
-          index.cacheIndex = loadS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name, sparkPartitionSize)
-        } else {
-          time(basicSparkIndexFunc(index, this))("" + index.indexer)
-          persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex], sparkPartitionSize)
+      val resultIndex = partitionedSource.map { elem =>
+        {
+          val location = getUID(index.source, partitionedSource.toString)
+          if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name, sparkPartitionSize, getIdList(location, "", true))) {
+            //TODO: refactor the above code to return a String instead boolean that can be then used to replace the "" below
+            if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(index.source, sparkPartitionSize, ""))) {
+              index.cacheIndex = loadS3Persisted(index.source, sparkPartitionSize)
+            } else {
+              val hostname = InetAddress.getLocalHost.getHostName
+              time(basicSparkIndexFunc(index, this))("" + index.indexer)
+              persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
+            }
+          }
+
+          indexer.apply(elem.asInstanceOf[List[In]])
         }
- 
-        indexer.apply(elem.asInstanceOf[List[In]])
-        }}.persist
+      }.persist
 
       index.setRDDIndex(Some(resultIndex))
     }

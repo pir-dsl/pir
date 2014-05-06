@@ -13,9 +13,9 @@ import edu.uwm.cs.mir.prototypes.aws.AWSS3API._
 
 object AWSS3API {
 
-  def getIdList(prefix: String, extension: String): List[String] = {
+  def getIdList(prefix: String, extension: String, checkPersisted: Boolean = false): List[String] = {
     System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", if (awsS3Config.isIs_s3_storage) "true" else "false")
-    val bucketName = awsS3Config.getBucket_name
+    val bucketName = if (!checkPersisted) awsS3Config.getBucket_name else awsS3Config.getS3_persistence_bucket_name
     val amazonS3Client = new AmazonS3Client
 
     val request = new ListObjectsRequest().withBucketName(bucketName).withPrefix(prefix)
@@ -26,7 +26,10 @@ object AWSS3API {
     do {
       val response = amazonS3Client.listObjects(request);
       val summaries = response.getObjectSummaries()
-      keyList = keyList ::: summaries.map(summary => summary.getKey()).filter(key => key.endsWith(extension)).toList
+      keyList = keyList ::: {
+        val newSummaries = summaries.map(summary => summary.getKey())
+        if (extension.isEmpty) newSummaries.filter(key => key.endsWith(extension)).toList else newSummaries.toList
+      }
       if (response.isTruncated) {
         request.setMarker(response.getNextMarker())
       } else {
@@ -36,9 +39,16 @@ object AWSS3API {
     keyList
   }
 
-  def isExistingS3Location(S3String: String): Boolean = {
+  def isExistingS3Location(S3String: String, hostname: String = ""): Boolean = {
     val amazonS3Client = getAmazonS3Client(awsS3Config);
-    val result = checkObjectExists(awsS3Config, S3String, amazonS3Client, true) 
+    val result = checkObjectExists(awsS3Config, S3String + (if (hostname.isEmpty) "" else "/" + hostname), amazonS3Client, true)
+    log("isExistingS3Location=" + result)("INFO")
+    result
+  }
+  
+  def getExistingHostname(S3String: String, hostname : String): String = {
+    val amazonS3Client = getAmazonS3Client(awsS3Config);
+    val result = getS3ObjectAsString(awsS3Config, S3String + "/" + hostname, amazonS3Client, true)
     log("isExistingS3Location=" + result)("INFO")
     result
   }
