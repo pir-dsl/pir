@@ -287,28 +287,30 @@ object Strategy {
 
   }
 
-  def loadS3PersistedSignature[In <: IFeature](source: SourceComponent[In], partition: String, hostname: String): String = {
-    val id = getUID(source, partition, hostname)
-    log("loadS3Persisted: " + id)("INFO")
+  def loadS3PersistedSignature[In <: IFeature](id: String): String = {
+    //val id = getUID(source, partition, hostname)
     deSerializeObject(id, awsS3Config, true).asInstanceOf[String]
   }
 
-  def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], partition: String = ""): Option[Index] = {
-    val id = getUID(source, partition)
+  def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], partition: String = "", hostname: String = ""): Option[Index] = {
+    val id = getUID(source, partition, hostname)
     log("loadS3Persisted: " + id)("INFO")
     Some(deSerializeObject(id, awsS3Config, true).asInstanceOf[Index])
   }
 
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
-    var id = getUID(source, partition, hostname)
-    log("persistS3: " + id)("INFO")
-    var sourceSignature = getSourceString(source)
-    log("sourceSignature: " + sourceSignature)("INFO")
-    serializeObject(sourceSignature, awsS3Config, id, true);
 
-    id = getUID(source, partition)
+    if (!hostname.isEmpty) {
+      val id = getUID(source, partition, hostname)
+      log("persistS3Signature: " + id)("INFO")
+      var sourceSignature = getSourceString(source)
+      log("sourceSignature: " + sourceSignature)("INFO")
+      serializeObject(sourceSignature, awsS3Config, id, true)
+    }
+
+    val id = getUID(source, partition, hostname)
     log("persistS3: " + id)("INFO")
-    serializeObject(index, awsS3Config, id, true);
+    serializeObject(index, awsS3Config, id, true)
   }
 
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
@@ -427,17 +429,21 @@ object Strategy {
           val location = getUID(index.source, partitionedSource.toString)
           val hostnames = getIdList(location, "", true)
           val resultString = checkS3PersistedString(index.source, partitionedSource.toString, hostnames)
-          if (!resultString.isEmpty) {
-            if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(index.source, sparkPartitionSize, ""))) {
-              index.cacheIndex = loadS3Persisted(index.source, sparkPartitionSize)
+          val hostname = InetAddress.getLocalHost.getHostName
+          var resultPartialIndex: Index = if (!resultString.isEmpty) {
+            if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(resultString))) {
+              loadS3Persisted(index.source, sparkPartitionSize, hostname).get
             } else {
-              val hostname = InetAddress.getLocalHost.getHostName
-              time(basicSparkIndexFunc(index, this))("" + index.indexer)
-              persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
+              val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+              persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
+              partialIndex
             }
+          } else {
+            val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+            persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
+            partialIndex
           }
-
-          indexer.apply(elem.asInstanceOf[List[In]])
+          resultPartialIndex
         }
       }.persist
 
