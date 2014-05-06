@@ -53,7 +53,7 @@ object AWSS3API {
       log("isExistingS3Location=" + result)("INFO")
       result
     } catch {
-      case _ => ""
+      case _ : Throwable => ""
     }
   }
 

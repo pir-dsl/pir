@@ -289,6 +289,7 @@ object Strategy {
 
   def loadS3PersistedSignature[In <: IFeature](id: String): String = {
     //val id = getUID(source, partition, hostname)
+    log("loadS3PersistedSignature for " + id)("INFO")
     deSerializeObject(id, awsS3Config, true).asInstanceOf[String]
   }
 
@@ -430,6 +431,7 @@ object Strategy {
           val hostnames = getIdList(location, "", true)
           val resultString = checkS3PersistedString(index.source, partitionedSource.toString, hostnames)
           val hostname = InetAddress.getLocalHost.getHostName
+          log("hostname: " + hostname)("INFO")
           var resultPartialIndex: Index = if (!resultString.isEmpty) {
             if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(resultString))) {
               loadS3Persisted(index.source, sparkPartitionSize, hostname).get
