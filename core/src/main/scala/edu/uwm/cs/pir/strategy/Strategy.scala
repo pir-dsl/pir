@@ -226,7 +226,7 @@ object Strategy {
     override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
         if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)) {
-          index.cacheIndex = loadS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)
+          index.cacheIndex = loadS3Persisted(index.source)
         } else {
           time(basicIndexFunc(index, this))("" + index.indexer)
           persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex])
