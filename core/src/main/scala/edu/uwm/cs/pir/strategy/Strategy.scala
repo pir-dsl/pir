@@ -300,7 +300,6 @@ object Strategy {
   }
 
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
-
     if (!hostname.isEmpty) {
       val id = getUID(source, partition, hostname)
       log("persistS3Signature: " + id)("INFO")
@@ -424,25 +423,35 @@ object Strategy {
       val indexer = index.indexer
       //      indexer.apply(fs.asInstanceOf[List[In]])
     		  
-      log("Start parallelization: ")("INFO")
+      log("Start parallelization: " + sparkPartitionSize)("INFO")
       val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
       val resultIndex = partitionedSource.map { elem =>
         {
+          log("Start processing: " + elem)("INFO")
           val location = getUID(index.source, partitionedSource.toString)
+          log("location: " + location)("INFO")
           val hostnames = getIdList(location, "", true)
+          log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
           val resultString = checkS3PersistedString(index.source, partitionedSource.toString, hostnames)
+          log("resultString: " + resultString)("INFO")
           val hostname = InetAddress.getLocalHost.getHostName
           log("hostname: " + hostname)("INFO")
           var resultPartialIndex: Index = if (!resultString.isEmpty) {
+            log("Continue to check")("INFO")
             if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(resultString))) {
+            	log("Found Index, load it")("INFO")
               loadS3Persisted(index.source, sparkPartitionSize, hostname).get
             } else {
+              log("Nothing found 1")("INFO")
               val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+              log("partialIndex 1: " + partialIndex)("INFO")
               persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
               partialIndex
             }
           } else {
+            log("Nothing found 2")("INFO")
             val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+            log("partialIndex 2: " + partialIndex)("INFO")
             persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
             partialIndex
           }
