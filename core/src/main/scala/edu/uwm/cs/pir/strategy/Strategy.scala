@@ -425,6 +425,7 @@ object Strategy {
     		  
       log("Start parallelization: " + sparkPartitionSize)("INFO")
       val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
+      log("partitionedSource: " + partitionedSource)("INFO")
       val resultIndex = partitionedSource.map { elem =>
         {
           log("Start processing: " + elem)("INFO")
