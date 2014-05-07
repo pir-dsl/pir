@@ -28,7 +28,7 @@ object AWSS3API {
       val summaries = response.getObjectSummaries()
       keyList = keyList ::: {
         val newSummaries = summaries.map(summary => summary.getKey())
-        if (extension.isEmpty) newSummaries.filter(key => key.endsWith(extension)).toList else newSummaries.toList
+        if (!extension.isEmpty) newSummaries.filter(key => key.endsWith(extension)).toList else newSummaries.toList
       }
       if (response.isTruncated) {
         request.setMarker(response.getNextMarker())

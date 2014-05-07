@@ -46,14 +46,14 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
 
-    override def getSignature = fileList.filter(filename => filename.endsWith(".xml")).foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/"), c.indexOf(".xml")))
+    override def getSignature = fileList/*.filter(filename => filename.endsWith(".xml"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/"), c.indexOf(".xml")))
 
     def apply(url: String): Option[Out] = {
-      if (url.isEmpty()) {
+      if (url.isEmpty) {
         None
       } else {
         val text = new Text(url).asInstanceOf[Out]
-        if (awsS3Config.isIs_s3_storage()) {
+        if (awsS3Config.isIs_s3_storage) {
           //log("load text from AWS")
           text.setAWSS3Config(awsS3Config)
         }
@@ -71,7 +71,7 @@ object GenericImpl {
         List(url)
       } else {
         //log("image url = " + url)
-        if (awsS3Config.isIs_s3_storage()) {
+        if (awsS3Config.isIs_s3_storage) {
           //log("isIs_s3_storage = true")
           getIdList(url, "jpg")
         } else {
@@ -83,7 +83,7 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
 
-    override def getSignature = fileList.filter(filename => filename.endsWith(".jpg")).foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/"), c.indexOf(".jpg")))
+    override def getSignature = fileList/*.filter(filename => filename.endsWith(".jpg"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/"), c.indexOf(".jpg")))
     
 
     def apply(url: String): Option[Out] = {
