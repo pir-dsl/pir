@@ -83,7 +83,10 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
     
-    override def getSignature = fileList.foldRight("")((r, c) => r + c.substring(0, c.indexOf(".jpg")))
+    override def getSignature = {
+      fileList.foreach(file => print(file) + ", ")
+      fileList.foldRight("")((r, c) => r + c.substring(0, c.indexOf(".jpg")))
+    }
     
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {

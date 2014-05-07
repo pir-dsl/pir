@@ -473,6 +473,7 @@ object Strategy {
       //val queryFeature = right.apply(left.asInstanceOf[SourcePipe[In, IFeature]].right.apply(elem))
 
       val finalResult = query.index.cacheRDDIndex.get.map(index => {
+        log("index for query: " + index)("INFO")
         query.query.setIndex(index)
         val queryResult = query.query.asInstanceOf[GenericInvertedIndexQuery].apply(queryFeature)
         log(queryResult.printResult)
