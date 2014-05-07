@@ -86,7 +86,8 @@ object GenericImpl {
     override def getSignature = {
       log("fileList size = " + fileList.size)("INFO")
       fileList.foreach(file => print(file) + ", ")
-      fileList.foldRight("")((r, c) => r + c.substring(0, c.indexOf(".jpg")))
+      //fileList.foldRight("")((r, c) => r + c.substring(0, c.indexOf(".jpg")))
+      fileList.foldRight("")((r, c) => r + c)
     }
     
     def apply(url: String): Option[Out] = {
