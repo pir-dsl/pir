@@ -423,7 +423,8 @@ object Strategy {
 
       val indexer = index.indexer
       //      indexer.apply(fs.asInstanceOf[List[In]])
-
+    		  
+      log("Start parallelization: ")("INFO")
       val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
       val resultIndex = partitionedSource.map { elem =>
         {
