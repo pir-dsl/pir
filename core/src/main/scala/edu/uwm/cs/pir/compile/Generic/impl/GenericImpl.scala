@@ -45,9 +45,9 @@ object GenericImpl {
     }
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
-    
+
     override def getSignature = fileList.foldRight("")((r, c) => r + c.substring(0, c.indexOf(".xml")))
-    
+
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
         None
@@ -82,15 +82,18 @@ object GenericImpl {
     }
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
-    
+
     override def getSignature = {
       log("fileList size = " + fileList.size)("INFO")
-      fileList.foreach(file => print(file) + ", ")
-      println
-      fileList.foldRight("")((c, r) =>  r + c.substring(c.lastIndexOf("/"), c.indexOf(".")))
+      fileList.foldRight("")((c, r) => {
+        log("c = " + c)("INFO")
+        log("c.lastIndexOf(\"/\") = " + c.lastIndexOf("/"))("INFO")
+        log("c.indexOf(\".jpg\") = " + c.indexOf(".jpg"))("INFO")
+        r + c.substring(c.lastIndexOf("/"), c.indexOf(".jpg"))
+      })
       //fileList.foldRight("")((r, c) => r + c)
     }
-    
+
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
         None
@@ -106,8 +109,7 @@ object GenericImpl {
     }
   }
 
-  @SerialVersionUID(1L)
-  //class Tokenizer(val p: String = "[^a-z0-9]+") {
+  @SerialVersionUID(1L) //class Tokenizer(val p: String = "[^a-z0-9]+") {
   class Tokenizer(val p: String = " ") extends Serializable {
     //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
@@ -121,7 +123,7 @@ object GenericImpl {
       else 0
     }
 
-    def printResult = print(docId + ", "  + score + "\n")
+    def printResult = print(docId + ", " + score + "\n")
   }
 
   @SerialVersionUID(1L)
@@ -216,7 +218,7 @@ object GenericImpl {
       }
       //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
       val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
-        resultList.sortWith(_>_).take(topk)   
+      resultList.sortWith(_ > _).take(topk)
     }
   }
 
