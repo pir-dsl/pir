@@ -87,7 +87,7 @@ object GenericImpl {
       log("fileList size = " + fileList.size)("INFO")
       fileList.foreach(file => print(file) + ", ")
       println
-      fileList.foldRight("")((r, c) => r + c.substring(c.indexOf("/"), c.indexOf(".")))
+      fileList.foldRight("")((c, r) =>  r + c.substring(c.lastIndexOf("/"), c.indexOf(".")))
       //fileList.foldRight("")((r, c) => r + c)
     }
     
