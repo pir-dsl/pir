@@ -84,6 +84,7 @@ object GenericImpl {
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
     
     override def getSignature = {
+      log("fileList size = " + fileList.size)("INFO")
       fileList.foreach(file => print(file) + ", ")
       fileList.foldRight("")((r, c) => r + c.substring(0, c.indexOf(".jpg")))
     }
