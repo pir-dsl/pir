@@ -280,16 +280,16 @@ object Strategy {
   import scala.util.control.Breaks._
   def checkS3PersistedString[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], partition: String = "", hostnames: List[String] = Nil): String = {
     if (hostnames == Nil) "" else { 
-      var resultHostname = ""
+      var resultSignatureId = ""
       breakable {
         hostnames.foreach(hostname => {
           val uuid = getUID(source, partition, hostname, true)
           log("checkS3PersistedString: " + uuid)("INFO")
-          val tempValue = getExistingHostname(uuid)
-          if (!tempValue.isEmpty) { resultHostname = tempValue; break }
+          val tempValue = getExistingSignatureId(uuid)
+          if (!tempValue.isEmpty) { resultSignatureId = tempValue; break }
         })
       }
-      resultHostname
+      resultSignatureId
     }
   }
 
@@ -306,12 +306,16 @@ object Strategy {
   }
 
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
+    
+    /*@SerialVersionUID(1L)
+    class SourceSignature (val content : String) extends Serializable    */  
+    
     if (!hostname.isEmpty) {
       val id = getUID(source, partition, hostname, true)
       log("persistS3Signature: " + id)("INFO")
-      var sourceSignature = getSourceString(source)
-      log("sourceSignature: " + sourceSignature)("INFO")
-      serializeObject(sourceSignature, awsS3Config, id, true)
+      var content = getSourceString(source)
+      log("sourceSignature content: " + content)("INFO")
+      serializeObject(content, awsS3Config, id, true)
     }
 
     val id = getUID(source, partition, hostname)
@@ -439,13 +443,13 @@ object Strategy {
           log("location: " + location)("INFO")
           val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
           log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
-          val resultString = checkS3PersistedString(index.source, sparkPartitionSize.toString, hostnames)
-          log("resultString: " + resultString)("INFO")
+          val storedSignatureId = checkS3PersistedString(index.source, sparkPartitionSize.toString, hostnames)
+          log("storedSignatureId: " + storedSignatureId)("INFO")
           val hostname = InetAddress.getLocalHost.getHostName
           log("hostname: " + hostname)("INFO")
-          var resultPartialIndex: Index = if (!resultString.isEmpty) {
+          var resultPartialIndex: Index = if (!storedSignatureId.isEmpty) {
             log("Continue to check")("INFO")
-            if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(resultString))) {
+            if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(storedSignatureId))) {
               log("Found Index, load it")("INFO")
               loadS3Persisted(index.source, sparkPartitionSize, hostname).get
             } else {

@@ -29,7 +29,7 @@ object AWSS3API {
       keyList = keyList ::: {
         val newSummaries = summaries.map(summary => summary.getKey())
         log("newSummaries.size = " + newSummaries.size)("INFO")
-        if (!extension.isEmpty) newSummaries.filter(key => {log("key = " + key)("INFO");key.endsWith(extension)}).toList else newSummaries.toList
+        if (!extension.isEmpty) newSummaries.filter(key => { log("key = " + key)("INFO"); key.endsWith(extension) }).toList else newSummaries.toList
       }
       if (response.isTruncated) {
         request.setMarker(response.getNextMarker())
@@ -42,19 +42,24 @@ object AWSS3API {
 
   def isExistingS3Location(S3String: String, hostname: String = ""): Boolean = {
     val amazonS3Client = getAmazonS3Client(awsS3Config);
-    val result = checkObjectExists(awsS3Config, S3String + (if (hostname.isEmpty) "" else "/" + hostname), amazonS3Client, true)
-    log("isExistingS3Location=" + result)("INFO")
-    result
-  }
-
-  def getExistingHostname(S3String: String): String = {
-    val amazonS3Client = getAmazonS3Client(awsS3Config);
     try {
-      val result = getS3ObjectAsString(awsS3Config, S3String, amazonS3Client, true)
+      val result = checkObjectExists(awsS3Config, S3String + (if (hostname.isEmpty) "" else "/" + hostname), amazonS3Client, true)
       log("isExistingS3Location=" + result)("INFO")
       result
     } catch {
-      case _ : Throwable => ""
+      case _: Throwable => false
+    }
+  }
+
+  def getExistingSignatureId(S3String: String): String = {
+    val amazonS3Client = getAmazonS3Client(awsS3Config);
+    try {
+      val result = checkObjectExists(awsS3Config, S3String, amazonS3Client, true)
+      //getS3ObjectAsString(awsS3Config, S3String, amazonS3Client, true)
+      log("hasExistingS3Location=" + result)("INFO")
+      if (result) S3String else ""
+    } catch {
+      case _: Throwable => ""
     }
   }
 
