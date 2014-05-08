@@ -24,11 +24,12 @@ object AWSS3API {
 
     var keyList = List[String]()
     do {
-      val response = amazonS3Client.listObjects(request);
+      val response = amazonS3Client.listObjects(request)
       val summaries = response.getObjectSummaries()
       keyList = keyList ::: {
         val newSummaries = summaries.map(summary => summary.getKey())
-        if (!extension.isEmpty) newSummaries.filter(key => key.endsWith(extension)).toList else newSummaries.toList
+        log("newSummaries.size = " + newSummaries.size)("INFO")
+        if (!extension.isEmpty) newSummaries.filter(key => {log("key = " + key)("INFO");key.endsWith(extension)}).toList else newSummaries.toList
       }
       if (response.isTruncated) {
         request.setMarker(response.getNextMarker())
