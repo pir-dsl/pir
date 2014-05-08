@@ -264,7 +264,7 @@ object Strategy {
   def getUID[In <: IFeature](source: SourceComponent[In], partition: String = "", hostname: String = "", signature: Boolean = false) = {
     val partitionPart = (if (partition.isEmpty) "" else partition + "/")
     val hostnamePart = if (hostname.isEmpty) getPersistedId(getVisitedPath(source)) else {
-      if (signature) getPersistedId(getVisitedPath(source)) + "-" + hostname + ".host" else getPersistedId(getVisitedPath(source)) + "/" + hostname
+      if (signature) getPersistedId(getVisitedPath(source)) + "-->>" + hostname + ".host" else getPersistedId(getVisitedPath(source)) + "/" + hostname
     }
     getPathSequence(source) + "/" + partitionPart + hostnamePart
   }
@@ -437,7 +437,7 @@ object Strategy {
           log("Start processing: " + elem)("INFO")
           val location = getUID(index.source, sparkPartitionSize.toString)
           log("location: " + location)("INFO")
-          val hostnames = getIdList(location, ".host", true)
+          val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
           log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
           val resultString = checkS3PersistedString(index.source, partitionedSource.toString, hostnames)
           log("resultString: " + resultString)("INFO")
