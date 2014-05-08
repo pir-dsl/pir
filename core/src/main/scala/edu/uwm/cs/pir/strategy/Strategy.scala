@@ -242,6 +242,8 @@ object Strategy {
   }
 
   def isSourceAligned(source: String, persisted: String) = {
+    log("source to compare: " + source)("INFO")
+    log("persisted to be compared: " + persisted)("INFO")
     source.equals(persisted)
   }
 
@@ -438,7 +440,6 @@ object Strategy {
       log("partitionedSource: " + partitionedSource)("INFO")
       val resultIndex = partitionedSource.map { elem =>
         {
-          log("Start processing: " + elem)("INFO")
           val location = getUID(index.source, sparkPartitionSize.toString)
           log("location: " + location)("INFO")
           val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))

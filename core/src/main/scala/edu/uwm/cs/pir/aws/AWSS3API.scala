@@ -28,8 +28,8 @@ object AWSS3API {
       val summaries = response.getObjectSummaries()
       keyList = keyList ::: {
         val newSummaries = summaries.map(summary => summary.getKey())
-        log("newSummaries.size = " + newSummaries.size)("INFO")
-        if (!extension.isEmpty) newSummaries.filter(key => { log("key = " + key)("INFO"); key.endsWith(extension) }).toList else newSummaries.toList
+        //log("newSummaries.size = " + newSummaries.size)("INFO")
+        if (!extension.isEmpty) newSummaries.filter(key => { /*log("key = " + key)("INFO"); */key.endsWith(extension) }).toList else newSummaries.toList
       }
       if (response.isTruncated) {
         request.setMarker(response.getNextMarker())
