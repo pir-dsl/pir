@@ -439,7 +439,7 @@ object Strategy {
           log("location: " + location)("INFO")
           val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
           log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
-          val resultString = checkS3PersistedString(index.source, partitionedSource.toString, hostnames)
+          val resultString = checkS3PersistedString(index.source, sparkPartitionSize.toString, hostnames)
           log("resultString: " + resultString)("INFO")
           val hostname = InetAddress.getLocalHost.getHostName
           log("hostname: " + hostname)("INFO")
