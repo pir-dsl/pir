@@ -261,8 +261,12 @@ object Strategy {
 
   def getPersistedId(vp: String) = { log(vp)("INFO"); vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-") }
 
-  def getUID[In <: IFeature](source: SourceComponent[In], partition: String = "", hostname: String = "") = {
-    getPathSequence(source) + "/" + (if (partition.isEmpty) "" else partition + "/") + (if (hostname.isEmpty) getPersistedId(getVisitedPath(source)) else hostname)
+  def getUID[In <: IFeature](source: SourceComponent[In], partition: String = "", hostname: String = "", signature: Boolean = false) = {
+    val partitionPart = (if (partition.isEmpty) "" else partition + "/")
+    val hostnamePart = if (hostname.isEmpty) getPersistedId(getVisitedPath(source)) else {
+      if (signature) hostname + "/" + getPersistedId(getVisitedPath(source)) else getPersistedId(getVisitedPath(source))
+    }
+    getPathSequence(source) + "/" + partitionPart + hostnamePart
   }
 
   def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], S3Location: String): Boolean = {
@@ -277,7 +281,7 @@ object Strategy {
     if (hostnames == Nil) "" else {
       var resultHostname = ""
       hostnames.foreach(hostname => {
-        val uuid = getUID(source, partition, hostname)
+        val uuid = getUID(source, partition, hostname, true)
         log("checkS3PersistedString: " + uuid)("INFO")
         val tempValue = getExistingHostname(uuid, hostname)
         if (!tempValue.isEmpty) resultHostname = tempValue
@@ -301,7 +305,7 @@ object Strategy {
 
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
     if (!hostname.isEmpty) {
-      val id = getUID(source, partition, hostname)
+      val id = getUID(source, partition, hostname, true)
       log("persistS3Signature: " + id)("INFO")
       var sourceSignature = getSourceString(source)
       log("sourceSignature: " + sourceSignature)("INFO")
@@ -422,7 +426,7 @@ object Strategy {
 
       val indexer = index.indexer
       //      indexer.apply(fs.asInstanceOf[List[In]])
-    		  
+
       log("Start parallelization: " + sparkPartitionSize)("INFO")
       val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
       log("partitionedSource: " + partitionedSource)("INFO")
@@ -440,7 +444,7 @@ object Strategy {
           var resultPartialIndex: Index = if (!resultString.isEmpty) {
             log("Continue to check")("INFO")
             if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(resultString))) {
-            	log("Found Index, load it")("INFO")
+              log("Found Index, load it")("INFO")
               loadS3Persisted(index.source, sparkPartitionSize, hostname).get
             } else {
               log("Nothing found 1")("INFO")
