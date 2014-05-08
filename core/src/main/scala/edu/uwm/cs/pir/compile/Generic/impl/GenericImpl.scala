@@ -46,7 +46,7 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
 
-    override def getSignature = fileList/*.filter(filename => filename.endsWith(".xml"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/"), c.indexOf(".xml")))
+    override def getSignature = fileList/*.filter(filename => filename.endsWith(".xml"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".xml")))
 
     def apply(url: String): Option[Out] = {
       if (url.isEmpty) {
@@ -83,7 +83,7 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
 
-    override def getSignature = fileList/*.filter(filename => filename.endsWith(".jpg"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/"), c.indexOf(".jpg")))
+    override def getSignature = fileList/*.filter(filename => filename.endsWith(".jpg"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".jpg")))
     
 
     def apply(url: String): Option[Out] = {

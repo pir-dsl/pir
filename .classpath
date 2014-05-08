@@ -33,7 +33,6 @@
 	<classpathentry kind="lib" path="core/custom_lib/DSL_MIR-0.0.1-SNAPSHOT.jar" sourcepath="/DSL_MIR/src/main/java"/>
 	<classpathentry kind="lib" path="lib_managed/jars/metadata-extractor-2.6.2.jar"/>
 	<classpathentry kind="lib" path="lib_managed/jars/scalacheck_2.10-1.10.0.jar"/>
-	<classpathentry kind="lib" path="assembly/target/scala-2.10/pir-assembly-0.1.0.jar"/>
 	<classpathentry kind="lib" path="lib_managed/jars/scalatest_2.10-2.0.jar"/>
 	<classpathentry kind="lib" path="spark/spark-assembly_2.10-0.9.0-incubating-hadoop1.0.4.jar"/>
 	<classpathentry kind="output" path="target/scala-2.9.3"/>
