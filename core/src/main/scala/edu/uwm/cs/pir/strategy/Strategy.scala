@@ -279,7 +279,7 @@ object Strategy {
 
   import scala.util.control.Breaks._
   def checkS3PersistedString[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], partition: String = "", hostnames: List[String] = Nil): String = {
-    if (hostnames == Nil) "" else {
+    if (hostnames == Nil) "" else { 
       var resultHostname = ""
       breakable {
         hostnames.foreach(hostname => {
@@ -435,7 +435,7 @@ object Strategy {
       val resultIndex = partitionedSource.map { elem =>
         {
           log("Start processing: " + elem)("INFO")
-          val location = getUID(index.source, partitionedSource.toString)
+          val location = getUID(index.source, sparkPartitionSize.toString)
           log("location: " + location)("INFO")
           val hostnames = getIdList(location, ".host", true)
           log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
