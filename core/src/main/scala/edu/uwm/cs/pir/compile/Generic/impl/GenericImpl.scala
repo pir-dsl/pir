@@ -46,7 +46,7 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
 
-    override def getSignature = fileList/*.filter(filename => filename.endsWith(".xml"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".xml")))
+    override def getSignature = fileList /*.filter(filename => filename.endsWith(".xml"))*/ .foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".xml")))
 
     def apply(url: String): Option[Out] = {
       if (url.isEmpty) {
@@ -83,8 +83,7 @@ object GenericImpl {
 
     override def getInfo = super.getInfo + "<<<" + url + ">>>"
 
-    override def getSignature = fileList/*.filter(filename => filename.endsWith(".jpg"))*/.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".jpg")))
-    
+    override def getSignature = fileList /*.filter(filename => filename.endsWith(".jpg"))*/ .foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".jpg")))
 
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
@@ -120,12 +119,14 @@ object GenericImpl {
   }
 
   @SerialVersionUID(1L)
-  class InvertedIndex(val tokenizer: Tokenizer) extends IIndex with Serializable {
+  class InvertedIndex(val tokenizer: Tokenizer,
+    val invertedIndex: collection.mutable.HashMap[String, List[Posting]] = new collection.mutable.HashMap[String, List[Posting]],
+    val dataset: collection.mutable.ArrayBuffer[String] = new collection.mutable.ArrayBuffer[String] /*Hold the documents contents*/ ) extends IIndex with Serializable {
 
     override def getLocation(): String = "";
 
-    val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
-    val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
+    //val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
+    //val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
     def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
     def index(docStringId: String, doc: String) { //dataset.size = current doc Id
       for (term <- tokenizer.tokenize(doc)) {
