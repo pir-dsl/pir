@@ -264,7 +264,7 @@ object Strategy {
   def getUID[In <: IFeature](source: SourceComponent[In], partition: String = "", hostname: String = "", signature: Boolean = false) = {
     val partitionPart = (if (partition.isEmpty) "" else partition + "/")
     val hostnamePart = if (hostname.isEmpty) getPersistedId(getVisitedPath(source)) else {
-      if (signature) hostname + "/" + getPersistedId(getVisitedPath(source)) else getPersistedId(getVisitedPath(source))
+      if (signature) getPersistedId(getVisitedPath(source)) + "-" + hostname + ".host" else getPersistedId(getVisitedPath(source)) + "/" + hostname
     }
     getPathSequence(source) + "/" + partitionPart + hostnamePart
   }
@@ -277,18 +277,20 @@ object Strategy {
     }
   }
 
+  import scala.util.control.Breaks._
   def checkS3PersistedString[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], partition: String = "", hostnames: List[String] = Nil): String = {
     if (hostnames == Nil) "" else {
       var resultHostname = ""
-      hostnames.foreach(hostname => {
-        val uuid = getUID(source, partition, hostname, true)
-        log("checkS3PersistedString: " + uuid)("INFO")
-        val tempValue = getExistingHostname(uuid, hostname)
-        if (!tempValue.isEmpty) resultHostname = tempValue
-      })
+      breakable {
+        hostnames.foreach(hostname => {
+          val uuid = getUID(source, partition, hostname, true)
+          log("checkS3PersistedString: " + uuid)("INFO")
+          val tempValue = getExistingHostname(uuid)
+          if (!tempValue.isEmpty) { resultHostname = tempValue; break }
+        })
+      }
       resultHostname
     }
-
   }
 
   def loadS3PersistedSignature[In <: IFeature](id: String): String = {
@@ -435,7 +437,7 @@ object Strategy {
           log("Start processing: " + elem)("INFO")
           val location = getUID(index.source, partitionedSource.toString)
           log("location: " + location)("INFO")
-          val hostnames = getIdList(location, "", true)
+          val hostnames = getIdList(location, ".host", true)
           log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
           val resultString = checkS3PersistedString(index.source, partitionedSource.toString, hostnames)
           log("resultString: " + resultString)("INFO")
@@ -447,13 +449,13 @@ object Strategy {
               log("Found Index, load it")("INFO")
               loadS3Persisted(index.source, sparkPartitionSize, hostname).get
             } else {
-              log("Nothing found 1")("INFO")
+              log("The signature didn't match, will create a new one")("INFO")
               val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
               log("partialIndex 1: " + partialIndex)("INFO")
               persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
               partialIndex
             }
-          } else {
+          } else { 
             log("Nothing found 2")("INFO")
             val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
             log("partialIndex 2: " + partialIndex)("INFO")

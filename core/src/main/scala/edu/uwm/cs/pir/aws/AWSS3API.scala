@@ -46,10 +46,10 @@ object AWSS3API {
     result
   }
 
-  def getExistingHostname(S3String: String, hostname: String): String = {
+  def getExistingHostname(S3String: String): String = {
     val amazonS3Client = getAmazonS3Client(awsS3Config);
     try {
-      val result = getS3ObjectAsString(awsS3Config, S3String + "/" + hostname, amazonS3Client, true)
+      val result = getS3ObjectAsString(awsS3Config, S3String, amazonS3Client, true)
       log("isExistingS3Location=" + result)("INFO")
       result
     } catch {
