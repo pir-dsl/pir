@@ -106,8 +106,8 @@ object GenericImpl {
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
   }
 
-  @SerialVersionUID(1L)
-  case class Posting(docId: Int, docStringId: String, var tf: Int) extends Serializable
+  /*@SerialVersionUID(1L)
+  case class Posting(docId: Int, docStringId: String, var tf: Int) extends Serializable*/
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
     def compare(that: InvertedIndexSearchResult): Int = {
       if (this.score > that.score) 1
@@ -131,10 +131,10 @@ object GenericImpl {
     def index(docStringId: String, doc: String) { //dataset.size = current doc Id
       for (term <- tokenizer.tokenize(doc)) {
         val list = invertedIndex.getOrElse(term, Nil)
-        if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
-          list.head.tf += 1
+        if (list != Nil && list.head.getDocId == dataset.size) //not the first time this term appears in the document
+          list.head.setTf(list.head.getTf + 1)
         else //first time of this term in the document 
-          invertedIndex.put(term, Posting(dataset.size, docStringId, 1) :: list)
+          invertedIndex.put(term, new Posting(dataset.size, docStringId, 1) :: list)
       }
       dataset += doc
     }
@@ -207,7 +207,7 @@ object GenericImpl {
       val accums = new collection.mutable.HashMap[Int, SearchResult] //Map(docId -> Score)
       for (term <- tokenizer.tokenize(q)) {
         for (posting <- index.invertedIndex.getOrElse(term, Nil)) {
-          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
+          accums.put(posting.getDocId, new SearchResult(posting.getDocStringId, accums.getOrElse[SearchResult](posting.getDocId, new SearchResult("", 0D)).score + posting.getTf * math.pow(idf(term), 2)))
         }
       }
       //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
