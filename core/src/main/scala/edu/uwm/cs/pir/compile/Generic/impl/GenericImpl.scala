@@ -106,8 +106,6 @@ object GenericImpl {
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
   }
 
-  @SerialVersionUID(1L)
-  case class Posting(docId: Int, docStringId: String, var tf: Int) extends Serializable
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
     def compare(that: InvertedIndexSearchResult): Int = {
       if (this.score > that.score) 1
@@ -548,3 +546,7 @@ object GenericImpl {
     }
   }
 }
+
+@SerialVersionUID(1L)
+case class Posting(docId: Int, docStringId: String, var tf: Int) extends Serializable
+  
