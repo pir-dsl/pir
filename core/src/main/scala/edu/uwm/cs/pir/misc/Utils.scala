@@ -99,8 +99,11 @@ object Utils {
           super.resolveClass(desc)
         } catch {
           case e: ClassNotFoundException => {
+            val classpath = System.getProperty("java.class.path") 
+            log("classpath = " + classpath)("INFO")
+            log("desc.getName = " + desc.getName)("INFO")
             val clazz = ClassLoader.getSystemClassLoader.loadClass(desc.getName);
-            println("desc.getName = " + desc.getName + ", class = " + clazz)
+            log("class = " + clazz)("INFO")
             clazz
           }
         }
