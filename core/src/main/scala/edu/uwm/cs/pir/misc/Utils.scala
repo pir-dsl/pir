@@ -2,6 +2,11 @@ package edu.uwm.cs.pir.misc
 
 import java.io._
 import edu.uwm.cs.mir.prototypes.feature._
+import edu.uwm.cs.mir.prototypes.aws.AWSS3Config
+import edu.uwm.cs.mir.prototypes.aws.AWSS3API
+import com.amazonaws.services.s3.AmazonS3
+
+import edu.uwm.cs.mir.prototypes.utils.Utils._
 
 object Utils {
 
@@ -38,5 +43,48 @@ object Utils {
     if (("INFO" == level) || (isDebug)) {
       println(level + ": " + msg);
     }
+  }
+
+  //throws IOException
+  def storeObject(obj: Object, config: AWSS3Config, id: String, checkPersisted: Boolean): Unit = {
+    if ((config.isIs_s3_storage)) {
+      var result = false;
+      val amazonS3Client = AWSS3API.getAmazonS3Client(config);
+      if (AWSS3API.checkObjectExists(config, id, amazonS3Client, false)) {
+        result = AWSS3API.deleteS3ObjectAsOutputStream(config, id, amazonS3Client, checkPersisted);
+        if (!result) throw new RuntimeException("Cannnot delete AWS S3 file: " + id);
+      }
+      var is: InputStream = getObjectInputStream(obj);
+      result = AWSS3API.putS3ObjectAsOutputStream(config, id, is, amazonS3Client, checkPersisted);
+      if (!result) throw new RuntimeException("Cannnot create AWS S3 file: " + id);
+    } else {
+      val file = new File(id);
+      if (!((file).exists)) {
+        file.createNewFile
+        serializeObjectToFile(obj, file)
+      }
+    }
+  }
+
+  def getObjectInputStream(obj: Object): InputStream = {
+    val os = new ByteArrayOutputStream
+    val oos = new ObjectOutputStream(os)
+    oos.writeObject(obj)
+    oos.flush
+    oos.close
+    new ByteArrayInputStream(os.toByteArray)
+  }
+
+  def loadObject(id: String, config: AWSS3Config, checkPersisted: Boolean): Object = {
+    val is = if (config.isIs_s3_storage) {
+      val amazonS3Client = AWSS3API.getAmazonS3Client(config)
+      AWSS3API.getS3ObjectAsInpuStream(config, id, amazonS3Client, checkPersisted)
+    } else {
+      new FileInputStream(id)
+    }
+    val in = new ObjectInputStream(is)
+    val obj = in.readObject
+    in.close
+    obj
   }
 }

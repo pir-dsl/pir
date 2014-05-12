@@ -16,7 +16,6 @@ import edu.uwm.cs.mir.prototypes.index._
 import edu.uwm.cs.mir.prototypes.feature.lire._
 import edu.uwm.cs.mir.prototypes.composer.ICompose
 import edu.uwm.cs.mir.prototypes.composer._
-import edu.uwm.cs.mir.prototypes.utils.Utils._
 
 import scala.collection.JavaConverters._
 import java.util.concurrent.{ Callable, Executors }
@@ -298,13 +297,13 @@ object Strategy {
   def loadS3PersistedSignature[In <: IFeature](id: String): String = {
     //val id = getUID(source, partition, hostname)
     log("loadS3PersistedSignature for " + id)("INFO")
-    deSerializeObject(id, awsS3Config, true).asInstanceOf[String]
+    loadObject(id, awsS3Config, true).asInstanceOf[String]
   }
 
   def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], partition: String = "", hostname: String = ""): Option[Index] = {
     val id = getUID(source, partition, hostname)
     log("loadS3Persisted: " + id)("INFO")
-    Some(deSerializeObject(id, awsS3Config, true).asInstanceOf[Index])
+    Some(loadObject(id, awsS3Config, true).asInstanceOf[Index])
   }
 
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
@@ -317,12 +316,12 @@ object Strategy {
       log("persistS3Signature: " + id)("INFO")
       var content = getSourceString(source)
       log("sourceSignature content: " + content)("INFO")
-      serializeObject(content, awsS3Config, id, true)
+      storeObject(content, awsS3Config, id, true)
     }
 
     val id = getUID(source, partition, hostname)
     log("persistS3: " + id)("INFO")
-    serializeObject(index, awsS3Config, id, true)
+    storeObject(index, awsS3Config, id, true)
   }
 
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
