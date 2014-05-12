@@ -98,7 +98,11 @@ object Utils {
         try {
           super.resolveClass(desc)
         } catch {
-          case e: ClassNotFoundException => ClassLoader.getSystemClassLoader.loadClass(desc.getName())
+          case e: ClassNotFoundException => {
+            val clazz = ClassLoader.getSystemClassLoader.loadClass(desc.getName);
+            println("desc.getName = " + desc.getName + ", class = " + clazz)
+            clazz
+          }
         }
       }
   }
