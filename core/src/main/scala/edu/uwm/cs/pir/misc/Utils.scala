@@ -82,9 +82,24 @@ object Utils {
     } else {
       new FileInputStream(id)
     }
-    val in = new ObjectInputStream(is)
+    //val in = new ObjectInputStream(is)
+    val in = new ClassLoaderObjectInputStream(is)
     val obj = in.readObject
     in.close
     obj
+  }
+
+  @throws(classOf[IOException])
+  class ClassLoaderObjectInputStream(in: InputStream) extends ObjectInputStream(in) {
+    @throws(classOf[IOException])
+    @throws(classOf[ClassNotFoundException])
+    override def resolveClass(desc: ObjectStreamClass): Class[_] =
+      {
+        try {
+          super.resolveClass(desc)
+        } catch {
+          case e: ClassNotFoundException => ClassLoader.getSystemClassLoader.loadClass(desc.getName())
+        }
+      }
   }
 }
