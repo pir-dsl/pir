@@ -548,5 +548,5 @@ object GenericImpl {
 }
 
 @SerialVersionUID(1L)
-case class Posting(docId: Int, docStringId: String, var tf: Int) extends Serializable
+class Posting(val docId: Int, val docStringId: String, var tf: Int) extends Serializable
   
