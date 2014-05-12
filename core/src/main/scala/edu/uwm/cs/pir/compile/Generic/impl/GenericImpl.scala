@@ -131,7 +131,7 @@ object GenericImpl {
     def index(docStringId: String, doc: String) { //dataset.size = current doc Id
       for (term <- tokenizer.tokenize(doc)) {
         val list = invertedIndex.getOrElse(term, Nil)
-        if (list != Nil && list.head == dataset.size) //not the first time this term appears in the document
+        if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
           list.head.tf += 1
         else //first time of this term in the document 
           invertedIndex.put(term, new Posting(dataset.size, docStringId, 1) :: list)
