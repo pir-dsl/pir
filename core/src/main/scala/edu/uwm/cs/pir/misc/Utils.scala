@@ -102,6 +102,7 @@ object Utils {
             val classpath = System.getProperty("java.class.path") 
             log("classpath = " + classpath)("INFO")
             log("current location = " + this.getClass.getProtectionDomain.getCodeSource.getLocation)
+            addJarToClasspath(this.getClass.getProtectionDomain.getCodeSource.getLocation.toString)
             log("desc.getName = " + desc.getName)("INFO")
             val clazz = ClassLoader.getSystemClassLoader.loadClass(desc.getName);
             log("class = " + clazz)("INFO")
@@ -110,4 +111,5 @@ object Utils {
         }
       }
   }
+  
 }
