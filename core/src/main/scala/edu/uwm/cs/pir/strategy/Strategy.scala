@@ -280,7 +280,7 @@ object Strategy {
 
   import scala.util.control.Breaks._
   def checkS3PersistedString[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], partition: String = "", hostnames: List[String] = Nil): String = {
-    if (hostnames == Nil) "" else { 
+    if (hostnames == Nil) "" else {
       var resultSignatureId = ""
       breakable {
         hostnames.foreach(hostname => {
@@ -307,10 +307,10 @@ object Strategy {
   }
 
   def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = ""): Unit = {
-    
+
     /*@SerialVersionUID(1L)
-    class SourceSignature (val content : String) extends Serializable    */  
-    
+    class SourceSignature (val content : String) extends Serializable    */
+
     if (!hostname.isEmpty) {
       val id = getUID(source, partition, hostname, true)
       log("persistS3Signature: " + id)("INFO")
@@ -441,31 +441,33 @@ object Strategy {
         {
           val location = getUID(index.source, sparkPartitionSize.toString)
           log("location: " + location)("INFO")
-          val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
-          log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
-          val storedSignatureId = checkS3PersistedString(index.source, sparkPartitionSize.toString, hostnames)
-          log("storedSignatureId: " + storedSignatureId)("INFO")
           val hostname = InetAddress.getLocalHost.getHostName
           log("hostname: " + hostname)("INFO")
-          var resultPartialIndex: Index = if (!storedSignatureId.isEmpty) {
-            log("Continue to check")("INFO")
-            if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(storedSignatureId))) {
-              log("Found Index, load it")("INFO")
-              loadS3Persisted(index.source, sparkPartitionSize, hostname).get
+          val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
+          log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
+          val existingHost = if (hostnames.contains(hostname)) true else false
+          val storedSignatureId = checkS3PersistedString(index.source, sparkPartitionSize.toString, hostnames)
+          log("storedSignatureId: " + storedSignatureId)("INFO")
+          var resultPartialIndex: Index =
+            if ((existingHost) && (!storedSignatureId.isEmpty)) {
+              log("Continue to check")("INFO")
+              if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(storedSignatureId))) {
+                log("Found Index, load it")("INFO")
+                loadS3Persisted(index.source, sparkPartitionSize, hostname).get
+              } else {
+                log("The signature didn't match, will create a new one")("INFO")
+                val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+                log("partialIndex 1: " + partialIndex)("INFO")
+                persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
+                partialIndex
+              }
             } else {
-              log("The signature didn't match, will create a new one")("INFO")
+              log("Nothing found 2")("INFO")
               val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
-              log("partialIndex 1: " + partialIndex)("INFO")
+              log("partialIndex 2: " + partialIndex)("INFO")
               persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
               partialIndex
             }
-          } else { 
-            log("Nothing found 2")("INFO")
-            val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
-            log("partialIndex 2: " + partialIndex)("INFO")
-            persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname)
-            partialIndex
-          }
           resultPartialIndex
         }
       }.persist
