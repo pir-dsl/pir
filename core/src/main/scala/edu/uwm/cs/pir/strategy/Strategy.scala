@@ -462,9 +462,9 @@ object Strategy {
           log("hostname: " + hostname)("INFO")
           val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
           log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
-          val existingHost = if (hostnames.contains(hostname)) true else false
+          val existingHost = if (hostnames.contains(hostname + count)) true else false
           val storedSignatureIds = checkS3PersistedString(index.source, sparkPartitionSize, hostname)
-          log("storedSignatureIds: " + storedSignatureIds.fold(":")(_ + _))("INFO")
+          log("storedSignatureIds: " + storedSignatureIds.fold("")(_ + ", " + _))("INFO")
           var resultPartialIndex: Option[Index] = None
           if (existingHost) {
             breakable {
