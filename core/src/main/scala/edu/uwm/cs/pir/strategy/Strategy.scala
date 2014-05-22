@@ -236,6 +236,7 @@ object Strategy {
   }
 
   def getSourceString[In <: IFeature](source: SourceComponent[In]) = {
+    thisV.sourceSignature = ""
     traversePipe(source)
     thisV.sourceSignature
   }
