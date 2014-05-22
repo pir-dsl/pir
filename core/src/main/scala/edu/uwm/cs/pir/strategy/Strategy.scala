@@ -252,6 +252,7 @@ object Strategy {
   }
 
   def getVisitedPath[In <: IFeature](source: SourceComponent[In]) = {
+    thisV.visitedPath = ""
     traversePipe(source)
     thisV.visitedPath
   }
