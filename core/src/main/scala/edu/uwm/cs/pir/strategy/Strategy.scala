@@ -236,7 +236,6 @@ object Strategy {
   }
 
   def getSourceString[In <: IFeature](source: SourceComponent[In]) = {
-    thisV.sourceSignature = ""
     traversePipe(source)
     thisV.sourceSignature
   }
@@ -248,11 +247,14 @@ object Strategy {
   }
 
   def traversePipe[In <: IFeature](source: SourceComponent[In]) = {
-    if (thisV.queue.isEmpty) source.accept(thisV)
+    if (thisV.queue.isEmpty) {
+      thisV.sourceSignature = ""
+      thisV.visitedPath = ""
+      source.accept(thisV)
+    }
   }
 
   def getVisitedPath[In <: IFeature](source: SourceComponent[In]) = {
-    thisV.visitedPath = ""
     traversePipe(source)
     thisV.visitedPath
   }
