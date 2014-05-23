@@ -451,7 +451,10 @@ object Strategy {
       //      indexer.apply(fs.asInstanceOf[List[In]])
 
       log("Start parallelization: " + sparkPartitionSize)("INFO")
-      val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
+      val seq = fs.grouped(sparkPartitionSize.toInt).toSeq
+      log("seq.size: " + seq.size)("INFO")
+      log("sparkPartitionSize.toInt: " + sparkPartitionSize.toInt)("INFO")
+      val partitionedSource = sparkContext.parallelize(seq, sparkPartitionSize.toInt)
       log("partitionedSource.count: " + partitionedSource.count)("INFO")
       var count = 1
       val resultIndex = partitionedSource.map { elem =>
@@ -488,6 +491,7 @@ object Strategy {
             }
           } else {
             log("Nothing found 2")("INFO")
+            log("elem.size: " + elem.size)("INFO")
             val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
             log("partialIndex 2: " + partialIndex)("INFO")
             persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
