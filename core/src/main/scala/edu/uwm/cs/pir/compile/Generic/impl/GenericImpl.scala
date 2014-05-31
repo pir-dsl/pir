@@ -193,7 +193,7 @@ object GenericImpl {
     }
 
     def top(another: InvertedIndexQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT): InvertedIndexQueryResultAdaptor = {
-      new InvertedIndexQueryResultAdaptor((result.union(another.result).sorted).take(numOfTopResult))
+      new InvertedIndexQueryResultAdaptor((result.union(another.result).sortWith(_>_)).take(numOfTopResult))
     }
   }
 
