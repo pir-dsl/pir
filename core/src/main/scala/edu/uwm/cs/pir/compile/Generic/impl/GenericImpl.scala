@@ -199,17 +199,17 @@ object GenericImpl {
 
   class InvertedIndexSearcher(val index: InvertedIndex, val tokenizer: Tokenizer) {
     class SearchResult(val docStringId: String, val score: Double)
-    def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
-    def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
+    //def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
+    //def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
     def searchOR(q: String, topk: Int) = {
       val accums = new collection.mutable.HashMap[Int, SearchResult] //Map(docId -> Score)
       for (term <- tokenizer.tokenize(q)) {
         for (posting <- index.invertedIndex.getOrElse(term, Nil)) {
-          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
+          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf /* * math.pow(idf(term), 2)*/))
         }
       }
       //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
-      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
+      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / 1/*docNorm(d._1)*/)).toList.filter(elem => !elem.score.isNaN())
       resultList.sortWith(_ > _).take(topk)
     }
   }
