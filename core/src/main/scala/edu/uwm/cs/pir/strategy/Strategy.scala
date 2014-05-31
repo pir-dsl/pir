@@ -228,7 +228,7 @@ object Strategy {
           index.cacheIndex = loadS3Persisted(index.source)
         } else {
           time(basicIndexFunc(index, this))("" + index.indexer)
-          persistS3(index.source, index.cacheIndex.get.asInstanceOf[InvertedIndex])
+          persistS3(index.source, List(), index.cacheIndex.get.asInstanceOf[InvertedIndex])
         }
       }
       index.cacheIndex
@@ -238,6 +238,10 @@ object Strategy {
   def getSourceString[In <: IFeature](source: SourceComponent[In]) = {
     traversePipe(source)
     thisV.sourceSignature
+  }
+  
+  def getDirectSourceString(source : List[IFeature]) = {
+    source.foldLeft("")((r, c) => r + c)
   }
 
   def isSourceAligned(source: String, persisted: String) = {
@@ -321,7 +325,7 @@ object Strategy {
     Some(loadObject(id, awsS3Config, true).asInstanceOf[Index])
   }
 
-  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], index: InvertedIndex, partition: String = "", hostname: String = "", count : Int = 0): Unit = {
+  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], s: List[IFeature], index: InvertedIndex, partition: String = "", hostname: String = "", count : Int = 0): Unit = {
 
     /*@SerialVersionUID(1L)
     class SourceSignature (val content : String) extends Serializable    */
@@ -329,7 +333,7 @@ object Strategy {
     if (!hostname.isEmpty) {
       val id = getUID(source, partition, if (count == 0) hostname else hostname + count, true)
       log("persistS3Signature: " + id)("INFO")
-      var content = getSourceString(source)
+      var content = if (s.isEmpty) getSourceString(source) else getDirectSourceString(s)
       log("sourceSignature content: " + content)("INFO")
       storeObject(content, awsS3Config, id, true)
     }
@@ -474,7 +478,7 @@ object Strategy {
               for (storedSignatureId <- storedSignatureIds) {
                 if (!storedSignatureId.isEmpty) {
                   log("Continue to check")("INFO")
-                  if (isSourceAligned(getSourceString(index.source), loadS3PersistedSignature(storedSignatureId))) {
+                  if (isSourceAligned(getDirectSourceString(elem), loadS3PersistedSignature(storedSignatureId))) {
                     log("Found Index, load it")("INFO")
                     resultPartialIndex = loadS3Persisted(index.source, sparkPartitionSize, hostname + count)
                     break
@@ -482,7 +486,7 @@ object Strategy {
                     log("The signature didn't match, will create a new one")("INFO")
                     val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
                     log("partialIndex 1: " + partialIndex)("INFO")
-                    persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
+                    persistS3(index.source, elem, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
                     resultPartialIndex = Some(partialIndex)
                     break
                   }
@@ -494,7 +498,7 @@ object Strategy {
             log("elem.size: " + elem.size)("INFO")
             val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
             log("partialIndex 2: " + partialIndex)("INFO")
-            persistS3(index.source, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
+            persistS3(index.source, elem, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
             resultPartialIndex = Some(partialIndex)
           }
           count += 1
