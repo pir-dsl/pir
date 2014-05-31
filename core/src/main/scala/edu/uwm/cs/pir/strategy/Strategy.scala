@@ -241,7 +241,7 @@ object Strategy {
   }
   
   def getDirectSourceString(source : List[IFeature]) = {
-    source.foldLeft("")((r, c) => r + c)
+    source.foldLeft("")((r, c) => r + c.getId)
   }
 
   def isSourceAligned(source: String, persisted: String) = {
