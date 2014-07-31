@@ -50,6 +50,8 @@ object Function {
   def f_sift() = new GenericSIFT()
 
   def f_luceneDocTransformer() = new GenericLuceneDocumentTransformer()
+  
+  def f_luceneDocTransformerSift() = new GenericLuceneDocumentTransformerSift()
 
   def f_WikiPediaDataSetTextExtractor(extractedTextLocation: String = DATA_ROOT + "text_features/training/") = new GenericWikiPediaDataSetTextExtractor(extractedTextLocation)
 

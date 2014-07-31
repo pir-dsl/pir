@@ -26,6 +26,8 @@ object Compile {
       new GenericImageLoad[Out](path)
     } else if (inputType == InputType.TEXT) {
       new GenericTextLoad[Out](path)
+    } else if (inputType == InputType.FEATURE) {
+      new GenericSiftFeatureLoad[Out](path)
     } else {
       throw new Exception("The type " + inputType + " is not supported yet!")
     }

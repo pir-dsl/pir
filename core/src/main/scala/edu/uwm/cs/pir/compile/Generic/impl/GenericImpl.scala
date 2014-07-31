@@ -62,6 +62,31 @@ object GenericImpl {
       }
     }
   }
+  
+  @SerialVersionUID(1L)
+  case class GenericSiftFeatureLoad[Out <: IFeature](val url: String) extends GenericLoad[Out] {
+    override lazy val fileList: List[String] = {
+      if (url.endsWith(".jpg") || url.endsWith(".xml")) {
+        List(url)
+      } else {
+        if (awsS3Config.isIs_s3_storage()) getIdList(url, "") else FeatureUtils.getFilenameListByPath(url, "").asScala.toList
+      }
+    }
+
+    override def getInfo = super.getInfo + "<<<" + url + ">>>"
+
+    override def getSignature = fileList.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.length))
+
+    def apply(url: String): Option[Out] = {
+      if (url.isEmpty) {
+        None
+      } else {
+        val feature = new SiftFeatureAdaptor(url.substring(url.lastIndexOf("/") + 1, url.length), null).asInstanceOf[Out]
+        log("load feature : " + url)("INFO")
+        Some(feature)
+      }
+    }
+  }
 
   @SerialVersionUID(1L)
   case class GenericImageLoad[Out <: IFeature](val url: String) extends GenericLoad[Out] {
@@ -498,6 +523,24 @@ object GenericImpl {
     override def setModel(model: IModel): Unit = {}
 
     def apply(in: LireFeatureAdaptor): LuceneFeatureAdaptor = {
+      log("Apply LuceneDocumentTransformer to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) {
+        ldt.setAWSS3Config(awsS3Config)
+      }
+      //log("in.id=" + in.getId() + ", in.lireFeature=" + in.getLireFeature() + ", in.type=" + in.getType())("DEBUG")
+      ldt.apply(in).asInstanceOf[LuceneFeatureAdaptor]
+    }
+  }
+  
+  @SerialVersionUID(1L)
+  case class GenericLuceneDocumentTransformerSift()
+    extends GenericProj[SiftFeatureAdaptor, LuceneFeatureAdaptor] {
+    val ldt = new LuceneDocumentTransformer()
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
+
+    def apply(in: SiftFeatureAdaptor): LuceneFeatureAdaptor = {
       log("Apply LuceneDocumentTransformer to " + in.getId())("INFO")
       if (awsS3Config.isIs_s3_storage()) {
         ldt.setAWSS3Config(awsS3Config)
