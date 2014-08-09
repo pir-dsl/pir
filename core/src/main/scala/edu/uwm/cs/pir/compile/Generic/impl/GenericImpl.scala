@@ -81,7 +81,7 @@ object GenericImpl {
       if (url.isEmpty) {
         None
       } else {
-        val feature = new SiftFeatureAdaptor(url.substring(url.lastIndexOf("/") + 1, url.length), null).asInstanceOf[Out]
+        val feature = new SiftFeatureAdaptor(url.substring(url.lastIndexOf("/") + 1, url.length), FeatureUtils.getSiftFeatures(url)).asInstanceOf[Out]
         log("load feature : " + url)("INFO")
         Some(feature)
       }
