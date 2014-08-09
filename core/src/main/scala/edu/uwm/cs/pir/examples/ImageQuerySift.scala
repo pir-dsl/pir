@@ -21,7 +21,7 @@ import edu.uwm.cs.pir.spark.SparkObject._
 
 object ImageQuerySift {
   def main(args: Array[String]): Unit = {
-    if (args.length != 2) {
+    if (args.length != 1) {
       usage
     } else {
       
@@ -29,22 +29,21 @@ object ImageQuerySift {
       awsS3Config = initAWSS3Config
       
       val env = args(0)
-      val dataset = args(1)
       
       if ("se" == env) {
-        time(sequentialImageQuery(dataset)) {
+        time(sequentialImageQuery) {
           "sequentialImageQuery"
         }
       } else if ("p" == env) {
-        time(parallelImageQuery(4, dataset)) {
+        time(parallelImageQuery(4)) {
           "parallelImageQuery (4 processors)"
         }
       } else if ("sp" == env) {
-        time(sparkImageQuery(dataset)) {
+        time(sparkImageQuery) {
           "sparkImageQuery"
         }
         log("Complete sparkImageQuery")("INFO")
-        //    time(sparkTransmediaQuery()) {
+        //    time(sparkTransmediaQuery) {
         //      "jobVisit"
         //    }
       } else {
@@ -56,34 +55,33 @@ object ImageQuerySift {
   }
 
   def usage: Unit = {
-    println("USAGE: ImageQuery \"se/p/sp 1/2 env.conf\"");
+    println("USAGE: ImageQuery \"se/p/sp env.conf\"");
     println("where se to run program sequentially, " + "p parallely, and sp in Spark; ");
-    println("if in Spark execution, 1 to run program against sample, 2 against WikiPedia dataset)")
     println("env.conf is a customized configuration file to replace the default one")
     println("see sample-application.conf for details")
   }
 
-  def sequentialImageQuery(dataset: String): Unit = {
-    val q = getQ(dataset)
+  def sequentialImageQuery(): Unit = {
+    val q = getQ
     val s = new SequentialStrategy()
     q.accept(s)
   }
 
-  def parallelImageQuery(numProcessors: Int, dataset: String): Unit = {
-    val q = getQ(dataset)
+  def parallelImageQuery(numProcessors: Int): Unit = {
+    val q = getQ
     val s = new ParallelStrategy(numProcessors)
     q.accept(s)
   }
 
-  def sparkImageQuery(dataset: String): Unit = {
-    val q = getQ(dataset)
+  def sparkImageQuery(): Unit = {
+    val q = getQ
     val s = new SparkStrategy()
     q.accept(s)
   }
 
-  def getQ(dataset: String) = {
-    val feature = load[SiftFeatureAdaptor]((if ("1" == dataset) SAMPLE_IMAGES_ROOT else WIKIPEDIA_IMAGES_ROOT) + "training", InputType.FEATURE)
-    val qImg = load[Image](SAMPLE_IMAGES_ROOT + "test/05fd84a06ea4f6769436760d8c5986c8.jpg", InputType.FEATURE)
+  def getQ() = {
+    val feature = load[SiftFeatureAdaptor]("", InputType.FEATURE)
+    val qImg = load[Image](SAMPLE_SIFT_FEATURE_ROOT + "1423-0127-17-3-4.sift", InputType.FEATURE)
 
     val idx = index(f_luceneIdx, feature.connect(f_luceneDocTransformerSift), feature.connect(f_luceneDocTransformerSift))
 

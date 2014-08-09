@@ -7,6 +7,7 @@ object Constants {
     
     val DATA_ROOT = inputDataRoot
     val SAMPLES_ROOT = DATA_ROOT + "samples/"
+    val SAMPLE_SIFT_FEATURE_ROOT = SAMPLES_ROOT + "sift/"
     val SAMPLE_IMAGES_ROOT = SAMPLES_ROOT + "images/"
     val SAMPLE_TEXT_ROOT = SAMPLES_ROOT + "text/"
     val WIKIPEDIA_ROOT = DATA_ROOT + "experiments/early_fusion/wikipedia_dataset/"
