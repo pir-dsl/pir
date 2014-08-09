@@ -8,6 +8,7 @@ import edu.uwm.cs.mir.prototypes.utils._
 import edu.uwm.cs.mir.prototypes.proj.lucene._
 import edu.uwm.cs.mir.prototypes.composer._
 import edu.uwm.cs.mir.prototypes.index._
+import edu.uwm.cs.mir.prototypes.utils.Utils._
 import edu.uwm.cs.pir.compile.Function._
 import edu.uwm.cs.pir.compile.Compile._
 import edu.uwm.cs.pir.strategy.Strategy._
@@ -16,6 +17,7 @@ import edu.uwm.cs.pir.graph.Stage._
 import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Scope._
+import edu.uwm.cs.pir.misc.Utils._
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -32,8 +34,18 @@ class ProjectorTestSuite extends FunSuite {
 //    assert(gabor != null)
 //  }
   
-  test ("Sorting") {
+  /*test ("Sorting") {
     val array = List(3,7,5,2).toArray.sortWith((e1, e2) => e1 < e2)
     array.map(elem => print(elem))
+  }*/
+  
+  test ("CL") {
+    var classpath = System.getProperty("java.class.path") 
+    log("classpath = " + classpath)("INFO")
+    var path = this.getClass.getProtectionDomain.getCodeSource.getLocation
+    log("current location = " + path)("INFO")
+    addJarToClasspath(this.getClass.getProtectionDomain.getCodeSource.getLocation)
+    classpath = System.getProperty("java.class.path") 
+    log("classpath = " + classpath)("INFO")
   }
 }

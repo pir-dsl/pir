@@ -8,6 +8,7 @@ import edu.uwm.cs.mir.prototypes.utils._
 import edu.uwm.cs.mir.prototypes.proj.lucene._
 import edu.uwm.cs.mir.prototypes.composer._
 import edu.uwm.cs.mir.prototypes.index._
+import edu.uwm.cs.mir.prototypes.utils.Utils._
 import edu.uwm.cs.pir.compile.Function._
 import edu.uwm.cs.pir.compile.Compile._
 import edu.uwm.cs.pir.strategy.Strategy._
@@ -17,7 +18,10 @@ import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
 import edu.uwm.cs.pir.compile.Scope._
+import edu.uwm.cs.pir.spark.SparkObject._
 import org.scalatest.junit.JUnitRunner
+
+import edu.uwm.cs.mir.prototypes.index._
 
 @RunWith(classOf[JUnitRunner])
 class PIRGenericSuite extends FunSuite {
@@ -31,4 +35,16 @@ class PIRGenericSuite extends FunSuite {
     array.map(elem => println(elem))
   }
 
+  test("InvertedIndex Testing") {
+    val index = new InvertedIndex(new Tokenizer)
+    index.index("id1", "content1")
+    index.index("id2", "content2")
+    index.index("id3", "content3")
+    
+    serializeObject(index, awsS3Config, "testId", true)
+    
+    val result = deSerializeObject("testId", awsS3Config, true).asInstanceOf[IIndex]
+    
+    println
+  }
 }

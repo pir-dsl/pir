@@ -4,12 +4,11 @@ import edu.uwm.cs.pir.graph.Proj._
 import edu.uwm.cs.pir.compile.Generic.GenericInterface._
 import edu.uwm.cs.pir.compile.Generic.impl.GenericImpl._
 import edu.uwm.cs.pir.graph.Stage._
-import edu.uwm.cs.pir.compile.Visitor
-import edu.uwm.cs.pir.graph.Source.SourcePipe
-import edu.uwm.cs.pir.graph.Source.SortPipe
-import edu.uwm.cs.pir.graph.Source.FilterPipe
+import edu.uwm.cs.pir.compile._
+import edu.uwm.cs.pir.graph.Source._
 import edu.uwm.cs.pir.misc.Utils._
 import edu.uwm.cs.pir.misc._
+import edu.uwm.cs.pir.aws.AWSS3API._
 
 import edu.uwm.cs.mir.prototypes.feature._
 import edu.uwm.cs.mir.prototypes.model._
@@ -28,6 +27,8 @@ import org.apache.spark.rdd._
 import edu.uwm.cs.pir.spark.SparkObject._
 
 import scala.reflect.ClassTag
+
+import java.net._
 
 object Strategy {
 
@@ -223,11 +224,123 @@ object Strategy {
 
     override def visit[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index]) = {
       if (index.cacheIndex == None) {
-        time(basicIndexFunc(index, this))("" + index.indexer)
+        if (checkS3Persisted(index.source, awsS3Config.getS3_persistence_bucket_name)) {
+          index.cacheIndex = loadS3Persisted(index.source)
+        } else {
+          time(basicIndexFunc(index, this))("" + index.indexer)
+          persistS3(index.source, List(), index.cacheIndex.get.asInstanceOf[InvertedIndex])
+        }
       }
       index.cacheIndex
     }
+  }
 
+  def getSourceString[In <: IFeature](source: SourceComponent[In]) = {
+    traversePipe(source)
+    thisV.sourceSignature
+  }
+  
+  def getDirectSourceString(source : List[IFeature]) = {
+    source.foldLeft("")((r, c) => r + c.getId)
+  }
+
+  def isSourceAligned(source: String, persisted: String) = {
+    log("source to compare: " + source)("INFO")
+    log("persisted to be compared: " + persisted)("INFO")
+    source.equals(persisted)
+  }
+
+  def traversePipe[In <: IFeature](source: SourceComponent[In]) = {
+    if (thisV.queue.isEmpty) {
+      thisV.sourceSignature = ""
+      thisV.visitedPath = ""
+      source.accept(thisV)
+    }
+  }
+
+  def getVisitedPath[In <: IFeature](source: SourceComponent[In]) = {
+    traversePipe(source)
+    thisV.visitedPath
+  }
+
+  def getPathSequence[In <: IFeature](source: SourceComponent[In]) = {
+    traversePipe(source)
+    thisV.queue.dequeueAll(v => true).foldLeft("S")((r, op) => r + "->" + op._1)
+  }
+
+  def getPersistedId(vp: String) = { log(vp)("INFO"); vp.substring(vp.lastIndexOf("<<<") + 3, vp.lastIndexOf(">>>")).replaceAll("/", "-") }
+
+  def getUID[In <: IFeature](source: SourceComponent[In], partition: String = "", hostname: String = "", signature: Boolean = false) = {
+    val partitionPart = (if (partition.isEmpty) "" else partition + "/")
+    val hostnamePart = if (hostname.isEmpty) getPersistedId(getVisitedPath(source)) else {
+      if (signature) getPersistedId(getVisitedPath(source)) + "-->>" + hostname + ".host" else getPersistedId(getVisitedPath(source)) + "/" + hostname
+    }
+    getPathSequence(source) + "/" + partitionPart + hostnamePart
+  }
+
+  def checkS3Persisted[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], S3Location: String): Boolean = {
+    val vp = getVisitedPath(source)
+    log("checkS3Persisted: " + vp)("INFO")
+    if (vp.isEmpty()) false else {
+      isExistingS3Location(getUID(source))
+    }
+  }
+
+  //  import scala.util.control.Breaks._
+  //  def checkS3PersistedString[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], partition: String = "", hostnames: List[String] = Nil): String = {
+  //    if (hostnames == Nil) "" else {
+  //      var resultSignatureId = ""
+  //      breakable {
+  //        hostnames.foreach(hostname => {
+  //          val uuid = getUID(source, partition, hostname, true)
+  //          log("checkS3PersistedString: " + uuid)("INFO")
+  //          val tempValue = getExistingSignatureId(uuid)
+  //          if (!tempValue.isEmpty) { resultSignatureId = tempValue; break }
+  //        })
+  //      }
+  //      resultSignatureId
+  //    }
+  //  }
+
+  def checkS3PersistedString[In <: IFeature, Index <: IIndex: ClassTag](source: SourceComponent[In], partition: String = "", hostname: String): List[String] = {
+    {
+      for {
+        count <- 1 to partition.toInt
+        uuid = getUID(source, partition, hostname + count, true)
+        existingSignatureId = getExistingSignatureId(uuid)
+        if (!existingSignatureId.isEmpty)
+      } yield existingSignatureId
+    }.toList
+  }
+
+  def loadS3PersistedSignature[In <: IFeature](id: String): String = {
+    //val id = getUID(source, partition, hostname)
+    log("loadS3PersistedSignature for " + id)("INFO")
+    loadObject(id, awsS3Config, true).asInstanceOf[String]
+  }
+
+  def loadS3Persisted[In <: IFeature, Index <: IIndex](source: SourceComponent[In], partition: String = "", hostname: String = ""): Option[Index] = {
+    val id = getUID(source, partition, hostname)
+    log("loadS3Persisted: " + id)("INFO")
+    Some(loadObject(id, awsS3Config, true).asInstanceOf[Index])
+  }
+
+  def persistS3[In <: IFeature, Index <: IIndex](source: SourceComponent[In], s: List[IFeature], index: InvertedIndex, partition: String = "", hostname: String = "", count : Int = 0): Unit = {
+
+    /*@SerialVersionUID(1L)
+    class SourceSignature (val content : String) extends Serializable    */
+
+    if (!hostname.isEmpty) {
+      val id = getUID(source, partition, if (count == 0) hostname else hostname + count, true)
+      log("persistS3Signature: " + id)("INFO")
+      var content = if (s.isEmpty) getSourceString(source) else getDirectSourceString(s)
+      log("sourceSignature content: " + content)("INFO")
+      storeObject(content, awsS3Config, id, true)
+    }
+
+    val id = getUID(source, partition, if (count == 0) hostname else hostname + count)
+    log("persistS3: " + id)("INFO")
+    storeObject(index, awsS3Config, id, true)
   }
 
   def basicIndexFunc[In <: IFeature, Index <: IIndex](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
@@ -237,7 +350,7 @@ object Strategy {
 
     fs = index.source.cache match {
       case Some(d) => d.toArray.toList
-      case None => null
+      case None => Nil
     }
 
     log("index data with " + index.indexer + "\n")
@@ -252,12 +365,14 @@ object Strategy {
       fs = fs :+ (elem.cache match {
         //Just do this to keep the right type
         case Some(d) => d.toArray.toList
-        case None => null
+        case None => Nil
       })
     })
     log("index data with " + index.indexer + "\n")
     index.setIndex(Some(index.indexer.apply(fs.asInstanceOf[List[List[In]]])))
   }
+
+  val thisV = new JobVisitor
 
   case class SequentialStrategy() extends RunStrategy {}
 
@@ -325,6 +440,7 @@ object Strategy {
       }
     }
 
+    import scala.util.control.Breaks._
     def basicSparkIndexFunc[In <: IFeature, Index <: IIndex: ClassTag](index: HistogramIndexStage[In, Index], strategy: RunStrategy): Unit = {
       var fs: List[IFeature] = Nil
 
@@ -332,14 +448,63 @@ object Strategy {
 
       fs = index.source.cache match {
         case Some(d) => d.toArray.toList
-        case None => null
+        case None => Nil
       }
 
       val indexer = index.indexer
-      indexer.apply(fs.asInstanceOf[List[In]])
+      //      indexer.apply(fs.asInstanceOf[List[In]])
 
-      val partitionedSource = sparkContext.parallelize(fs.grouped(sparkPartitionSize.toInt).toList, sparkPartitionSize.toInt)
-      val resultIndex = partitionedSource.map { elem => indexer.apply(elem.asInstanceOf[List[In]]) }.persist
+      log("Start parallelization: " + sparkPartitionSize)("INFO")
+      val seq = fs.grouped(fs.size/sparkPartitionSize.toInt).toList.toSeq
+      log("seq.size: " + seq.size)("INFO")
+      log("sparkPartitionSize.toInt: " + sparkPartitionSize.toInt)("INFO")
+      val partitionedSource = sparkContext.parallelize(seq, sparkPartitionSize.toInt)
+      log("partitionedSource.count: " + partitionedSource.count)("INFO")
+      var count = 1
+      val resultIndex = partitionedSource.map { elem =>
+        {
+          val location = getUID(index.source, sparkPartitionSize.toString)
+          log("location: " + location)("INFO")
+          val hostname = InetAddress.getLocalHost.getHostName
+          log("hostname: " + hostname)("INFO")
+          val hostnames = getIdList(location, ".host", true).map(hostname => hostname.substring(hostname.lastIndexOf("-->>") + 4, hostname.indexOf(".host")))
+          log("hostnames: " + hostnames.foldLeft("")((r, c) => r + c))("INFO")
+          val existingHost = if (hostnames.contains(hostname + count)) true else false
+          val storedSignatureIds = checkS3PersistedString(index.source, sparkPartitionSize, hostname)
+          log("storedSignatureIds: " + storedSignatureIds.fold("")(_ + ", " + _))("INFO")
+          var resultPartialIndex: Option[Index] = None
+          if (existingHost) {
+            breakable {
+              for (storedSignatureId <- storedSignatureIds) {
+                if (!storedSignatureId.isEmpty) {
+                  log("Continue to check")("INFO")
+                  if (isSourceAligned(getDirectSourceString(elem), loadS3PersistedSignature(storedSignatureId))) {
+                    log("Found Index, load it")("INFO")
+                    resultPartialIndex = loadS3Persisted(index.source, sparkPartitionSize, hostname + count)
+                    break
+                  } else {
+                    log("The signature didn't match, will create a new one")("INFO")
+                    val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+                    log("partialIndex 1: " + partialIndex)("INFO")
+                    persistS3(index.source, elem, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
+                    resultPartialIndex = Some(partialIndex)
+                    break
+                  }
+                }
+              }
+            }
+          } else {
+            log("Nothing found 2")("INFO")
+            log("elem.size: " + elem.size)("INFO")
+            val partialIndex = indexer.apply(elem.asInstanceOf[List[In]])
+            log("partialIndex 2: " + partialIndex)("INFO")
+            persistS3(index.source, elem, partialIndex.asInstanceOf[InvertedIndex], sparkPartitionSize, hostname, count)
+            resultPartialIndex = Some(partialIndex)
+          }
+          count += 1
+          resultPartialIndex.get
+        }
+      }.persist
 
       index.setRDDIndex(Some(resultIndex))
     }
@@ -354,6 +519,7 @@ object Strategy {
       //val queryFeature = right.apply(left.asInstanceOf[SourcePipe[In, IFeature]].right.apply(elem))
 
       val finalResult = query.index.cacheRDDIndex.get.map(index => {
+        log("index for query: " + index)("INFO")
         query.query.setIndex(index)
         val queryResult = query.query.asInstanceOf[GenericInvertedIndexQuery].apply(queryFeature)
         log(queryResult.printResult)

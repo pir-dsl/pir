@@ -44,17 +44,46 @@ object GenericImpl {
       }
     }
 
+    override def getInfo = super.getInfo + "<<<" + url + ">>>"
+
+    override def getSignature = fileList /*.filter(filename => filename.endsWith(".xml"))*/ .foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".xml")))
+
     def apply(url: String): Option[Out] = {
-      if (url.isEmpty()) {
+      if (url.isEmpty) {
         None
       } else {
         val text = new Text(url).asInstanceOf[Out]
-        if (awsS3Config.isIs_s3_storage()) {
+        if (awsS3Config.isIs_s3_storage) {
           //log("load text from AWS")
           text.setAWSS3Config(awsS3Config)
         }
         log("load text : " + url)("INFO")
         Some(text)
+      }
+    }
+  }
+  
+  @SerialVersionUID(1L)
+  case class GenericSiftFeatureLoad[Out <: IFeature](val url: String) extends GenericLoad[Out] {
+    override lazy val fileList: List[String] = {
+      if (url.endsWith(".jpg") || url.endsWith(".xml")) {
+        List(url)
+      } else {
+        if (awsS3Config.isIs_s3_storage()) getIdList(url, "") else FeatureUtils.getFilenameListByPath(url, "").asScala.toList
+      }
+    }
+
+    override def getInfo = super.getInfo + "<<<" + url + ">>>"
+
+    override def getSignature = fileList.foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.length))
+
+    def apply(url: String): Option[Out] = {
+      if (url.isEmpty) {
+        None
+      } else {
+        val feature = new SiftFeatureAdaptor(url.substring(url.lastIndexOf("/") + 1, url.length), null).asInstanceOf[Out]
+        log("load feature : " + url)("INFO")
+        Some(feature)
       }
     }
   }
@@ -67,7 +96,7 @@ object GenericImpl {
         List(url)
       } else {
         //log("image url = " + url)
-        if (awsS3Config.isIs_s3_storage()) {
+        if (awsS3Config.isIs_s3_storage) {
           //log("isIs_s3_storage = true")
           getIdList(url, "jpg")
         } else {
@@ -76,6 +105,10 @@ object GenericImpl {
         }
       }
     }
+
+    override def getInfo = super.getInfo + "<<<" + url + ">>>"
+
+    override def getSignature = fileList /*.filter(filename => filename.endsWith(".jpg"))*/ .foldRight("")((c, r) => r + c.substring(c.lastIndexOf("/") + 1, c.indexOf(".jpg")))
 
     def apply(url: String): Option[Out] = {
       if (url.isEmpty()) {
@@ -92,13 +125,12 @@ object GenericImpl {
     }
   }
 
-  //class Tokenizer(val p: String = "[^a-z0-9]+") {
-  class Tokenizer(val p: String = " ") {
+  @SerialVersionUID(1L) //class Tokenizer(val p: String = "[^a-z0-9]+") {
+  class Tokenizer(val p: String = " ") extends Serializable {
     //val stopwords = scala.io.Source.fromFile("../stopwords.txt").getLines.toSet
     def tokenize(s: String) = s.toLowerCase.split(p) //.filter(!stopwords.contains(_))
   }
 
-  case class Posting(docId: Int, docStringId: String, var tf: Int)
   case class InvertedIndexSearchResult(docId: Int, docStringId: String, doc: String, score: Double) extends Ordered[InvertedIndexSearchResult] {
     def compare(that: InvertedIndexSearchResult): Int = {
       if (this.score > that.score) 1
@@ -106,15 +138,18 @@ object GenericImpl {
       else 0
     }
 
-    def printResult = print(docId + ", "  + score + "\n")
+    def printResult = print(docId + ", " + score + "\n")
   }
 
-  class InvertedIndex(val tokenizer: Tokenizer) extends IIndex {
+  @SerialVersionUID(1L)
+  class InvertedIndex(val tokenizer: Tokenizer,
+    val invertedIndex: collection.mutable.HashMap[String, List[Posting]] = new collection.mutable.HashMap[String, List[Posting]],
+    val dataset: collection.mutable.ArrayBuffer[String] = new collection.mutable.ArrayBuffer[String] /*Hold the documents contents*/ ) extends IIndex with Serializable {
 
     override def getLocation(): String = "";
 
-    val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
-    val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
+    //val invertedIndex = new collection.mutable.HashMap[String, List[Posting]]
+    //val dataset = new collection.mutable.ArrayBuffer[String] //Hold the documents contents
     def getDocCount(term: String) = invertedIndex.getOrElse(term, Nil).size
     def index(docStringId: String, doc: String) { //dataset.size = current doc Id
       for (term <- tokenizer.tokenize(doc)) {
@@ -122,7 +157,7 @@ object GenericImpl {
         if (list != Nil && list.head.docId == dataset.size) //not the first time this term appears in the document
           list.head.tf += 1
         else //first time of this term in the document 
-          invertedIndex.put(term, Posting(dataset.size, docStringId, 1) :: list)
+          invertedIndex.put(term, new Posting(dataset.size, docStringId, 1) :: list)
       }
       dataset += doc
     }
@@ -183,24 +218,24 @@ object GenericImpl {
     }
 
     def top(another: InvertedIndexQueryResultAdaptor, numOfTopResult: Int = NUM_OF_TOP_RESULT): InvertedIndexQueryResultAdaptor = {
-      new InvertedIndexQueryResultAdaptor((result.union(another.result)).take(numOfTopResult))
+      new InvertedIndexQueryResultAdaptor((result.union(another.result).sortWith(_>_)).take(numOfTopResult))
     }
   }
 
   class InvertedIndexSearcher(val index: InvertedIndex, val tokenizer: Tokenizer) {
     class SearchResult(val docStringId: String, val score: Double)
-    def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
-    def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
+    //def docNorm(docId: Int) = math.sqrt(tokenizer.tokenize(index.dataset(docId)).foldLeft(0D)((accum, t) => accum + math.pow(idf(t), 2)))
+    //def idf(term: String) = math.log(index.dataset.size.toDouble / index.getDocCount(term).toDouble)
     def searchOR(q: String, topk: Int) = {
       val accums = new collection.mutable.HashMap[Int, SearchResult] //Map(docId -> Score)
       for (term <- tokenizer.tokenize(q)) {
         for (posting <- index.invertedIndex.getOrElse(term, Nil)) {
-          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf * math.pow(idf(term), 2)))
+          accums.put(posting.docId, new SearchResult(posting.docStringId, accums.getOrElse[SearchResult](posting.docId, new SearchResult("", 0D)).score + posting.tf /* * math.pow(idf(term), 2)*/))
         }
       }
       //The last filter step is necessary as otherwise "Comparison method violates its general contract" error will present due to NaN
-      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / docNorm(d._1))).toList.filter(elem => !elem.score.isNaN())
-        resultList.sortWith(_>_).take(topk)   
+      val resultList = accums.map(d => InvertedIndexSearchResult(d._1, d._2.docStringId, index.dataset(d._1), d._2.score / 1/*docNorm(d._1)*/)).toList.filter(elem => !elem.score.isNaN())
+      resultList.sortWith(_ > _).take(topk)
     }
   }
 
@@ -496,10 +531,28 @@ object GenericImpl {
       ldt.apply(in).asInstanceOf[LuceneFeatureAdaptor]
     }
   }
+  
+  @SerialVersionUID(1L)
+  case class GenericLuceneDocumentTransformerSift()
+    extends GenericProj[SiftFeatureAdaptor, LuceneFeatureAdaptor] {
+    val ldt = new LuceneDocumentTransformer()
+
+    override def setIndex(index: IIndex): Unit = {}
+    override def setModel(model: IModel): Unit = {}
+
+    def apply(in: SiftFeatureAdaptor): LuceneFeatureAdaptor = {
+      log("Apply LuceneDocumentTransformer to " + in.getId())("INFO")
+      if (awsS3Config.isIs_s3_storage()) {
+        ldt.setAWSS3Config(awsS3Config)
+      }
+      //log("in.id=" + in.getId() + ", in.lireFeature=" + in.getLireFeature() + ", in.type=" + in.getType())("DEBUG")
+      ldt.apply(in).asInstanceOf[LuceneFeatureAdaptor]
+    }
+  }
 
   @SerialVersionUID(1L)
   case class GenericCCATrain(imageFeatureSize: Int = NUM_OF_CLUSTERS, textFeatureSize: Int = if (awsS3Config.isIs_s3_storage()) {
-    edu.uwm.cs.mir.prototypes.aws.AWSS3API.getNumberOfLinesOfS3Objects(awsS3Config, GROUND_TRUTH_CATEGORY_LIST, edu.uwm.cs.mir.prototypes.aws.AWSS3API.getAmazonS3Client(awsS3Config))
+    edu.uwm.cs.mir.prototypes.aws.AWSS3API.getNumberOfLinesOfS3Objects(awsS3Config, GROUND_TRUTH_CATEGORY_LIST, edu.uwm.cs.mir.prototypes.aws.AWSS3API.getAmazonS3Client(awsS3Config), false)
   } else {
     FileUtils.readLines(new File(GROUND_TRUTH_CATEGORY_LIST)).size()
   }) extends GenericTrain2[Histogram, LdaFeature, CCAModel] {
@@ -536,3 +589,7 @@ object GenericImpl {
     }
   }
 }
+
+@SerialVersionUID(1L)
+class Posting(val docId: Int, val docStringId: String, var tf: Int) extends Serializable
+  
