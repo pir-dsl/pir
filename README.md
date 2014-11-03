@@ -24,9 +24,7 @@ The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix sys
 4. run ```chmod 600 pir-keypair.pem ```;
 5. run ```./spark-ec2 -k pir-keypair -i pir-keypair.pem -s 4 launch pir ``` to launch the cluster on AWS (where 4 is the number of worker nodes we plan to spawn)
 (you will see the dynamic ```host_name ``` once you finish step 5, please record it for usage in step 9);
-
-The below step 6 is optional and not needed if elastic IP is not used (please read Amazon EC2 documentation about elastic IP for details)
-
+(The below step 6 is optional and not needed if elastic IP is not used (please read Amazon EC2 documentation about elastic IP for details))
 6. Associate a elastic IP with the master instance (do the same for the slave node) so we can use this ip as the hostname in the code;
 7. run ```./spark-ec2 -k pir-keypair -i pir-keypair.pem login pir ``` to SSH onto the the machine;
 8. run ```git clone https://github.com/pir-dsl/pir.git ``` and ```cd ``` to the pir folder;
