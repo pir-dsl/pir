@@ -9,6 +9,7 @@ The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix sys
 1. in your unix console, execute the below for later convenience (apparently you need to replace the placeholder ${...} with your actual values)
 
 	export AWS_ACCESS_KEY_ID=${your_access_key_ID_VALUE}
+	
 	export AWS_SECRET_ACCESS_KEY=${your_secret_ACCESS_KEY_VALUE}
 
 2. Download Spark 1.0 binary to a folder (e.g. spark-1.0-incubating-bin-hadoop1);
@@ -45,10 +46,14 @@ exec_SFA.sh
 Once you start one of the above scripts, you can open a browser and use http://{host_name}:8080 to view the running instances and runtime execution details (where host_name is the same as what you recored in step 5). 
 
 Several caveats: 
+
 1. If anything goes wrong, you can always exit from ssh remote (step 7) back to your local console and execute  ./spark-ec2 stop pir (./spark-ec2 destroy will terminate and kill everything for the instance) to stop the cluster and do thing again 
 (Please do double-check your EC2 instances from the Amazon EC2 web console to make sure the instances have been deleted as otherwise you will pay for the hanging instance!).
+
 2. After stopped the cluster, you can run ./spark-ec2 -i pir-keypair.pem start pir to restart the cluster
+
 3. The spark_partition_size (which is the # of slices of spark data) parameter in the env.conf file can be modified based on your needs 
+
 4. The Amazon S3 bucket_name parameter in env.conf file can be modified; currently iaprtc12 contains data from ImageClef (around 20,000 images/annotations)  while PirData contains data from UCSD (around 2800 image/text) 
  
 PIR is under pure GNU 2 license currently. 
