@@ -25,24 +25,30 @@ The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix sys
 10. run ./sbt/sbt clean update assembly to build the pir jar
 
 To test and use PIR, we have several scripts ready out-of-the-box (Please execute them right in the EC2 master node after step 10):
-
+```Shell
 exec_ImageQuery.sh 
 		: execute image index and query with Lire CEDD & Lire feature combined using Lucene index and the index/query steps are sequentially executed;
-
+```
+```Shell
 exec_ImageQuerySift.sh 
 		: execute image index and query with Lire SIFT feature;
-
+```
+```Shell
 exec_NaiveIndexQuery.sh
 		: execute image index and query with Lire CEDD & Lire feature combined with built-in index and query and hence the index/query steps are distributed;
-
+```
+```Shell
 exec_NaiveIndexQuerySift.sh
 		: execute image index and query with Lire SIFT feature combined with built-in index and query and hence the index/query steps are distributed;
+```
+```Shell
 exec_Transmedia.sh
 		: execute transmedia query with Sift image feature and LDA text feature combined;
-
+```
+```Shell
 exec_SFA.sh
 		: execute Series feature aggregation content-based image retrieval
-
+```
 Once you start one of the above scripts, you can open a browser and use http://{host_name}:8080 to view the running instances and runtime execution details (where host_name is the same as what you recored in step 5). 
 
 Several caveats: 
