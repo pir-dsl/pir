@@ -8,13 +8,14 @@ The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix sys
 
 1. in your unix console, execute the below for later convenience (apparently you need to replace the placeholder ${...} with your actual values)
 
+	```Shell
 	export AWS_ACCESS_KEY_ID=${your_access_key_ID_VALUE}
-	
 	export AWS_SECRET_ACCESS_KEY=${your_secret_ACCESS_KEY_VALUE}
+	```
 
 2. Download Spark 1.0 binary to a folder (e.g. spark-1.0-incubating-bin-hadoop1);
 3. Go to Amazon AWS to create a new keypair file (pir-keypair.pem) and copy the saved private key file into the Spark ec2 folder;
-4. run chmod 600 pir-keypair.pem;
+4. run ```Shell chmod 600 pir-keypair.pem ```;
 5. run ./spark-ec2 -k pir-keypair -i pir-keypair.pem -s 4 launch pir to launch the cluster on AWS (where 4 is the number of worker nodes we plan to spawn)
 (you will see the dynamic host_name once you finish step 5, please record it for usage in step 9);
 //The below step 6 is optional and not needed if elastic IP is not used (please read Amazon EC2 documentation about elastic IP for details)
