@@ -6,7 +6,7 @@ The expressiveness and effectiveness of the DSL have been evaluated by deploying
 
 The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix system is as follows:
 
-1. in our unix console, execute the below for later convenience (apparently you need to replace the placeholder ${...} with your actual values)
+1. in your unix console, execute the below for later convenience (apparently you need to replace the placeholder ${...} with your actual values)
 	export AWS_ACCESS_KEY_ID=${your_access_key_ID_VALUE}
 	export AWS_SECRET_ACCESS_KEY=${your_secret_ACCESS_KEY_VALUE}
 2. Download Spark 1.0 binary to a folder (e.g. spark-1.0-incubating-bin-hadoop1);
