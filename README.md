@@ -7,8 +7,10 @@ The expressiveness and effectiveness of the DSL have been evaluated by deploying
 The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix system is as follows:
 
 1. in your unix console, execute the below for later convenience (apparently you need to replace the placeholder ${...} with your actual values)
+
 	export AWS_ACCESS_KEY_ID=${your_access_key_ID_VALUE}
 	export AWS_SECRET_ACCESS_KEY=${your_secret_ACCESS_KEY_VALUE}
+
 2. Download Spark 1.0 binary to a folder (e.g. spark-1.0-incubating-bin-hadoop1);
 3. Go to Amazon AWS to create a new keypair file (pir-keypair.pem) and copy the saved private key file into the Spark ec2 folder;
 4. run chmod 600 pir-keypair.pem;
@@ -25,14 +27,18 @@ To test and use PIR, we have several scripts ready out-of-the-box (Please execut
 
 exec_ImageQuery.sh 
 		: execute image index and query with Lire CEDD & Lire feature combined using Lucene index and the index/query steps are sequentially executed;
+
 exec_ImageQuerySift.sh 
 		: execute image index and query with Lire SIFT feature;
+
 exec_NaiveIndexQuery.sh
 		: execute image index and query with Lire CEDD & Lire feature combined with built-in index and query and hence the index/query steps are distributed;
+
 exec_NaiveIndexQuerySift.sh
 		: execute image index and query with Lire SIFT feature combined with built-in index and query and hence the index/query steps are distributed;
 exec_Transmedia.sh
 		: execute transmedia query with Sift image feature and LDA text feature combined;
+
 exec_SFA.sh
 		: execute Series feature aggregation content-based image retrieval
 
