@@ -15,15 +15,15 @@ The step-by-step procedure to run PIR in Spark on Amazon EC2 on a Linux/unix sys
 
 2. Download Spark 1.0 binary to a folder (e.g. spark-1.0-incubating-bin-hadoop1);
 3. Go to Amazon AWS to create a new keypair file (pir-keypair.pem) and copy the saved private key file into the Spark ec2 folder;
-4. run ```Shell chmod 600 pir-keypair.pem ```;
-5. run ```Shell ./spark-ec2 -k pir-keypair -i pir-keypair.pem -s 4 launch pir ``` to launch the cluster on AWS (where 4 is the number of worker nodes we plan to spawn)
-(you will see the dynamic ```Shell host_name ``` once you finish step 5, please record it for usage in step 9);
+4. run ```chmod 600 pir-keypair.pem ```;
+5. run ```./spark-ec2 -k pir-keypair -i pir-keypair.pem -s 4 launch pir ``` to launch the cluster on AWS (where 4 is the number of worker nodes we plan to spawn)
+(you will see the dynamic ```host_name ``` once you finish step 5, please record it for usage in step 9);
 //The below step 6 is optional and not needed if elastic IP is not used (please read Amazon EC2 documentation about elastic IP for details)
 6. Associate a elastic IP with the master instance (do the same for the slave node) so we can use this ip as the hostname in the code;
-7. run ```Shell ./spark-ec2 -k pir-keypair -i pir-keypair.pem login pir ``` to SSH onto the the machine;
-8. run ```Shell git clone https://github.com/pir-dsl/pir.git ``` and ```Shell cd ``` to the pir folder;
-9. edit the ```Shell host_home ``` value in env.conf file to be the running instance host; 
-10. run ```Shell ./sbt/sbt clean update assembly ``` to build the pir jar
+7. run ```./spark-ec2 -k pir-keypair -i pir-keypair.pem login pir ``` to SSH onto the the machine;
+8. run ```git clone https://github.com/pir-dsl/pir.git ``` and ```cd ``` to the pir folder;
+9. edit the ```host_home ``` value in env.conf file to be the running instance host; 
+10. run ```./sbt/sbt clean update assembly ``` to build the pir jar
 
 To test and use PIR, we have several scripts ready out-of-the-box (Please execute them right in the EC2 master node after step 10):
 ```Shell
@@ -54,12 +54,12 @@ Once you start one of the above scripts, you can open a browser and use http://{
 
 Several caveats: 
 
-1. If anything goes wrong, you can always exit from ssh remote (step 7) back to your local console and execute  ```Shell ./spark-ec2 stop pir ``` (```Shell ./spark-ec2 destroy ``` will terminate and kill everything for the instance) to stop the cluster and do thing again 
+1. If anything goes wrong, you can always exit from ssh remote (step 7) back to your local console and execute  ```./spark-ec2 stop pir ``` (```./spark-ec2 destroy ``` will terminate and kill everything for the instance) to stop the cluster and do thing again 
 (Please do double-check your EC2 instances from the Amazon EC2 web console to make sure the instances have been deleted as otherwise you will pay for the hanging instance!).
 
-2. After stopped the cluster, you can run ```Shell ./spark-ec2 -i pir-keypair.pem start pir ``` to restart the cluster
+2. After stopped the cluster, you can run ```./spark-ec2 -i pir-keypair.pem start pir ``` to restart the cluster
 
-3. The ```Shell spark_partition_size ``` (which is the # of slices of spark data) parameter in the env.conf file can be modified based on your needs 
+3. The ```spark_partition_size ``` (which is the # of slices of spark data) parameter in the env.conf file can be modified based on your needs 
 
 4. The Amazon S3 bucket_name parameter in env.conf file can be modified; currently iaprtc12 contains data from ImageClef (around 20,000 images/annotations)  while PirData contains data from UCSD (around 2800 image/text) 
  
