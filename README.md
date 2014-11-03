@@ -83,7 +83,7 @@ We kindly ask you to refer the following paper in any publication/software menti
 X. Huang, T. Zhao, and Y. Cao, "PIR: A Domain Specific Language for Multimedia Retrieval" in
 IEEE International Symposium on Multimedia (ISM2013), Anaheim, California USA  December, 2013
 
-Technical Contact
+Technical Support
 -----------------
 
 Pease direct any questions in usage of PIR to xiaobing@uwm.edu.
